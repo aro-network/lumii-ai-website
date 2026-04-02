@@ -112,13 +112,15 @@
          HERO
     ============================================================ -->
     <header
-      class="relative pt-20 overflow-hidden technical-grid"
+      class="relative overflow-hidden technical-grid flex flex-col"
+      style="min-height: 100vh; padding-top: 80px;"
       aria-labelledby="hero-headline"
     >
       <!-- Atmospheric fade overlay -->
       <div class="absolute inset-0 bg-gradient-to-b from-transparent via-surface/80 to-surface pointer-events-none"></div>
 
-      <div class="mx-auto px-6 w-full flex flex-wrap justify-center items-center relative z-10 gap-12 max-w-7xl py-20 pb-28">
+      <!-- Main content -->
+      <div class="mx-auto px-6 w-full flex flex-wrap justify-center items-center relative z-10 gap-12 max-w-7xl flex-1" style="padding-top: 6vh; padding-bottom: 4vh;">
 
         <!-- Left: Copy -->
         <div class="flex flex-col items-center text-center" style="flex: 1 1 340px; max-width: 560px;">
@@ -132,18 +134,8 @@
             Direct Sourced. Operationally excellent. Not a Marketplace.
           </p>
           <div class="flex flex-wrap justify-center items-center gap-4">
-            <a
-              href="#"
-              class="bg-primary text-on-primary px-8 py-3.5 font-bold transition-all hover:bg-primary-container active:scale-95 inline-block"
-            >
-              Get Started
-            </a>
-            <a
-              href="#"
-              class="bg-white border border-primary text-primary px-8 py-3.5 font-bold transition-all hover:bg-surface-container-low active:scale-95 inline-block"
-            >
-              View Docs
-            </a>
+            <a href="#" class="bg-primary text-on-primary px-8 py-3.5 font-bold transition-all hover:bg-primary-container active:scale-95 inline-block">Get Started</a>
+            <a href="#" class="bg-white border border-primary text-primary px-8 py-3.5 font-bold transition-all hover:bg-surface-container-low active:scale-95 inline-block">View Docs</a>
           </div>
         </div>
 
@@ -192,7 +184,8 @@ response = client.chat.completions.create(
           </div>
         </div>
 
-      </div>
+      </div><!-- /main content -->
+
     </header>
 
     <!-- ============================================================
