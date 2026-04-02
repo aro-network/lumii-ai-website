@@ -1,0 +1,16 @@
+{
+  "name": "lumii-ai-website",
+  "version": "1.0.0",
+  "description": "LumiiAI - Clean & Stable AI Token API Access",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^5.4.0",
+    "@tailwindcss/vite": "^4.0.0",
+    "tailwindcss": "^4.0.0"
+  }
+}

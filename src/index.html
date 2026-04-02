@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- SEO -->
+  <title>LumiiAI — Clean &amp; Stable AI Token API Access</title>
+  <meta name="description" content="Direct sourced, operationally excellent AI token API access. Not a marketplace. OpenAI-compatible endpoint with transparent pricing and smart routing." />
+  <meta name="keywords" content="AI API, LLM API, OpenAI compatible, language model API, AI token access, lumii-auto" />
+  <link rel="canonical" href="https://lumii-ai.io" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://lumii-ai.io" />
+  <meta property="og:title" content="LumiiAI — Clean &amp; Stable AI Token API Access" />
+  <meta property="og:description" content="Direct sourced. Operationally excellent. Not a Marketplace." />
+  <meta property="og:image" content="/og-image.png" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="LumiiAI — Clean &amp; Stable AI Token API Access" />
+  <meta name="twitter:description" content="Direct sourced. Operationally excellent. Not a Marketplace." />
+  <meta name="twitter:image" content="/og-image.png" />
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="icon" type="image/png" href="/favicon.png" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="./style.css" />
+</head>
+
+<body class="bg-surface text-on-background antialiased">
+
+  <!-- ============================================================
+       NAV
+  ============================================================ -->
+  <nav
+    class="glass-nav fixed top-0 w-full z-50 border-b"
+    style="background: rgba(249,249,249,0.72); border-color: rgba(198,198,198,0.3);"
+    aria-label="Main navigation"
+  >
+    <div class="flex justify-between items-center px-6 md:px-8 py-4 max-w-screen-xl mx-auto">
+
+      <!-- Logo -->
+      <div class="flex items-center gap-8">
+        <a href="/" class="flex items-center gap-2.5 group" aria-label="LumiiAI home">
+          <div class="w-8 h-8 bg-black flex items-center justify-center rounded-sm glow-focal">
+            <span class="text-white font-headline font-bold text-sm tracking-tighter">L</span>
+          </div>
+          <span class="font-headline font-bold text-xl tracking-tight text-on-background">LumiiAI</span>
+        </a>
+
+        <!-- Desktop nav links -->
+        <div class="hidden md:flex items-center gap-8" role="list">
+          <a class="text-on-surface-variant font-medium hover:text-on-background transition-colors duration-200 text-sm" href="#" role="listitem">Documentation</a>
+          <a class="text-on-surface-variant font-medium hover:text-on-background transition-colors duration-200 text-sm" href="#" role="listitem">API Reference</a>
+          <a class="text-on-surface-variant font-medium hover:text-on-background transition-colors duration-200 text-sm" href="#" role="listitem">Status</a>
+          <a class="text-on-surface-variant font-medium hover:text-on-background transition-colors duration-200 text-sm" href="#" role="listitem">Support</a>
+        </div>
+      </div>
+
+      <!-- CTA + Mobile toggle -->
+      <div class="flex items-center gap-4">
+        <a
+          href="#"
+          class="bg-primary text-on-primary px-5 py-2 text-xs font-bold tracking-tight hover:opacity-90 active:scale-95 transition-all"
+        >
+          GET STARTED
+        </a>
+
+        <!-- Mobile hamburger -->
+        <button
+          id="mobile-nav-toggle"
+          class="md:hidden flex flex-col gap-1.5 p-2"
+          aria-label="Open navigation menu"
+          aria-expanded="false"
+          aria-controls="mobile-nav-menu"
+        >
+          <span class="block w-5 h-0.5 bg-on-background"></span>
+          <span class="block w-5 h-0.5 bg-on-background"></span>
+          <span class="block w-5 h-0.5 bg-on-background"></span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile nav menu -->
+    <div
+      id="mobile-nav-menu"
+      style="display:none"
+      class="flex-col gap-0 border-t md:hidden"
+      style="border-color: rgba(198,198,198,0.3);"
+      data-open="false"
+    >
+      <a class="px-6 py-4 text-sm font-medium text-on-surface-variant hover:bg-surface-container-low transition-colors" href="#">Documentation</a>
+      <a class="px-6 py-4 text-sm font-medium text-on-surface-variant hover:bg-surface-container-low transition-colors" href="#">API Reference</a>
+      <a class="px-6 py-4 text-sm font-medium text-on-surface-variant hover:bg-surface-container-low transition-colors" href="#">Status</a>
+      <a class="px-6 py-4 text-sm font-medium text-on-surface-variant hover:bg-surface-container-low transition-colors" href="#">Support</a>
+    </div>
+  </nav>
+
+  <main>
+
+    <!-- ============================================================
+         HERO
+    ============================================================ -->
+    <header
+      class="relative min-h-screen flex items-center pt-20 overflow-hidden technical-grid"
+      aria-labelledby="hero-headline"
+    >
+      <!-- Atmospheric fade overlay -->
+      <div class="absolute inset-0 bg-gradient-to-b from-transparent via-surface/80 to-surface pointer-events-none"></div>
+
+      <div class="mx-auto px-6 md:px-8 w-full grid grid-cols-1 lg:grid-cols-2 relative z-10 gap-12 lg:gap-20 items-center max-w-5xl py-24">
+
+        <!-- Left: Copy -->
+        <div class="flex flex-col justify-center">
+          <h1
+            id="hero-headline"
+            class="font-headline text-5xl md:text-6xl font-bold tracking-tighter leading-[1.1] text-on-background mb-6"
+          >
+            Clean &amp; Stable<br />AI token API access.
+          </h1>
+          <p class="text-on-surface-variant text-lg max-w-md mb-10 leading-relaxed">
+            Direct Sourced. Operationally excellent. Not a Marketplace.
+          </p>
+          <div class="flex flex-wrap items-center gap-4">
+            <a
+              href="#"
+              class="bg-primary text-on-primary px-8 py-3.5 font-bold transition-all hover:bg-primary-container active:scale-95 inline-block"
+            >
+              Get Started
+            </a>
+            <a
+              href="#"
+              class="bg-white border border-primary text-primary px-8 py-3.5 font-bold transition-all hover:bg-surface-container-low active:scale-95 inline-block"
+            >
+              View Docs
+            </a>
+          </div>
+        </div>
+
+        <!-- Right: Code block -->
+        <div class="flex items-center justify-center lg:justify-end">
+          <div class="code-block-wrapper w-full max-w-md rounded-xl relative group mono-glow" style="background:#1e1e1e;">
+            <!-- Subtle glow ring -->
+            <div class="absolute -inset-0.5 bg-gradient-to-r from-primary/20 to-outline/20 rounded-xl blur opacity-30 pointer-events-none"></div>
+
+            <div class="relative rounded-xl overflow-hidden" style="border: 1px solid rgba(255,255,255,0.06);">
+              <!-- Title bar -->
+              <div class="flex items-center justify-between px-4 py-3" style="background:rgba(255,255,255,0.04); border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <div class="flex gap-2" aria-hidden="true">
+                  <div class="w-3 h-3 rounded-full" style="background:#3a3a3a;"></div>
+                  <div class="w-3 h-3 rounded-full" style="background:#3a3a3a;"></div>
+                  <div class="w-3 h-3 rounded-full" style="background:#3a3a3a;"></div>
+                </div>
+                <div class="flex items-center gap-3">
+                  <span class="text-[10px] font-mono tracking-widest uppercase" style="color:#6b7280;">main.py</span>
+                  <!-- Copy button -->
+                  <button
+                    class="copy-btn flex items-center gap-1.5 px-2.5 py-1 rounded text-[10px] font-mono tracking-wide transition-all hover:opacity-90 active:scale-95"
+                    style="background:rgba(255,255,255,0.08); color:#9ca3af; border: 1px solid rgba(255,255,255,0.1);"
+                    data-copy-target="hero-code-snippet"
+                    aria-label="Copy code to clipboard"
+                  >
+                    <span class="material-symbols-outlined text-xs" style="font-size:14px; color:#9ca3af;">content_copy</span>
+                    <span data-copy-label>Copy</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Code -->
+              <pre class="p-6 text-xs font-mono leading-relaxed overflow-x-auto" aria-label="Python code example"><code id="hero-code-snippet" style="color:#e2e2e2;"><span style="color:#6b7280;">import openai</span>
+
+client = openai.OpenAI(
+    base_url=<span style="color:#d1d5db;">"https://api.lumii-ai.io/v1"</span>,
+    api_key=<span style="color:#d1d5db;">"your-key"</span>
+)
+
+response = client.chat.completions.create(
+    model=<span style="color:#d1d5db;">"lumii-auto"</span>,
+    messages=[{<span style="color:#d1d5db;">"role"</span>: <span style="color:#d1d5db;">"user"</span>, <span style="color:#d1d5db;">"content"</span>: <span style="color:#d1d5db;">"Hello"</span>}]
+)</code></pre>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </header>
+
+    <!-- ============================================================
+         VALUE PROPOSITION
+    ============================================================ -->
+    <section
+      class="py-24"
+      style="background:#333333;"
+      aria-labelledby="value-prop-heading"
+    >
+      <h2 id="value-prop-heading" class="sr-only">Why LumiiAI</h2>
+      <div class="max-w-7xl mx-auto px-6 md:px-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+
+          <article class="flex flex-col space-y-4 text-center items-center">
+            <span class="material-symbols-outlined text-6xl text-white opacity-90" aria-hidden="true">database</span>
+            <h3 class="font-headline font-bold text-2xl text-white">Direct Sourced</h3>
+            <p class="text-neutral-300" style="font-family: var(--font-body);">Models sourced directly from providers. No middlemen.</p>
+          </article>
+
+          <article class="flex flex-col space-y-4 text-center items-center">
+            <span class="material-symbols-outlined text-6xl text-white opacity-90" aria-hidden="true">tune</span>
+            <h3 class="font-headline font-bold text-2xl text-white">Operationally Excellent</h3>
+            <p class="text-neutral-300" style="font-family: var(--font-body);">Lean ops, quality infrastructure, stable delivery.</p>
+          </article>
+
+          <article class="flex flex-col space-y-4 text-center items-center">
+            <span class="material-symbols-outlined text-6xl text-white opacity-90" aria-hidden="true">verified</span>
+            <h3 class="font-headline font-bold text-2xl text-white">Clean &amp; Stable</h3>
+            <p class="text-neutral-300" style="font-family: var(--font-body);">No bait-and-switch. Just reliable API access.</p>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         EVERYTHING YOU EXPECT
+    ============================================================ -->
+    <section class="py-32 bg-surface" aria-labelledby="features-heading">
+      <div class="max-w-7xl mx-auto px-6 md:px-8 grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+
+        <!-- Left: Feature list -->
+        <div>
+          <h2
+            id="features-heading"
+            class="font-headline font-bold text-5xl mb-8 text-on-background"
+          >
+            Everything You Expect
+          </h2>
+
+          <ul class="space-y-5 mb-12" role="list">
+            <li class="flex items-center gap-3">
+              <span class="material-symbols-outlined text-xl text-primary" aria-hidden="true">task_alt</span>
+              <span class="text-lg text-on-background">Smart routing (lumii-auto)</span>
+            </li>
+            <li class="flex items-center gap-3">
+              <span class="material-symbols-outlined text-xl text-primary" aria-hidden="true">task_alt</span>
+              <span class="text-lg text-on-background">Multiple payment options</span>
+            </li>
+            <li class="flex items-center gap-3">
+              <span class="material-symbols-outlined text-xl text-primary" aria-hidden="true">task_alt</span>
+              <span class="text-lg text-on-background">Multiple API formats</span>
+            </li>
+            <li class="flex items-center gap-3">
+              <span class="material-symbols-outlined text-xl text-primary" aria-hidden="true">task_alt</span>
+              <span class="text-lg text-on-background">Transparent pricing</span>
+            </li>
+            <li class="flex items-center gap-3">
+              <span class="material-symbols-outlined text-xl text-primary" aria-hidden="true">task_alt</span>
+              <span class="text-lg text-on-background">Model verification</span>
+            </li>
+            <li class="flex items-center gap-3">
+              <span class="material-symbols-outlined text-xl text-primary" aria-hidden="true">task_alt</span>
+              <span class="text-lg text-on-background">Pay-as-you-go, crypto supported</span>
+            </li>
+          </ul>
+
+          <blockquote
+            class="text-on-surface-variant italic border-l-4 pl-4 py-2"
+            style="border-color: var(--color-outline-variant);"
+          >
+            Table stakes. The real value is stability from direct source &amp; operation.
+          </blockquote>
+        </div>
+
+        <!-- Right: API spec card -->
+        <div
+          class="bg-white p-10 md:p-12 rounded-xl flex flex-col gap-8"
+          style="box-shadow: 0 32px 64px -12px rgba(0,0,0,0.08); border: 1px solid #f0f0f0;"
+        >
+          <dl>
+            <div class="flex justify-between items-center pb-6" style="border-bottom: 1px solid #f0f0f0;">
+              <dt class="text-on-surface-variant font-medium uppercase text-xs tracking-widest" style="font-family: var(--font-body);">API Endpoint</dt>
+              <dd><code class="bg-neutral-50 px-4 py-2 rounded text-sm font-mono text-on-background">api.lumii-ai.io</code></dd>
+            </div>
+            <div class="flex justify-between items-center py-6" style="border-bottom: 1px solid #f0f0f0;">
+              <dt class="text-on-surface-variant font-medium uppercase text-xs tracking-widest" style="font-family: var(--font-body);">Format</dt>
+              <dd><code class="bg-neutral-50 px-4 py-2 rounded text-sm font-mono text-on-background">OpenAI Compatible</code></dd>
+            </div>
+            <div class="flex justify-between items-center py-6" style="border-bottom: 1px solid #f0f0f0;">
+              <dt class="text-on-surface-variant font-medium uppercase text-xs tracking-widest" style="font-family: var(--font-body);">Authentication</dt>
+              <dd><code class="bg-neutral-50 px-4 py-2 rounded text-sm font-mono text-on-background">API Key</code></dd>
+            </div>
+            <div class="flex justify-between items-center pt-6">
+              <dt class="text-on-surface-variant font-medium uppercase text-xs tracking-widest" style="font-family: var(--font-body);">Billing</dt>
+              <dd><code class="bg-neutral-50 px-4 py-2 rounded text-sm font-mono text-on-background">Pay-as-you-go</code></dd>
+            </div>
+          </dl>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============================================================
+         HOW IT WORKS
+    ============================================================ -->
+    <section
+      class="py-24 bg-white"
+      style="border-top: 1px solid rgba(198,198,198,0.15); border-bottom: 1px solid rgba(198,198,198,0.15);"
+      aria-labelledby="how-it-works-heading"
+    >
+      <div class="max-w-7xl mx-auto px-6 md:px-8">
+        <h2 id="how-it-works-heading" class="font-headline font-bold text-4xl text-center mb-16 text-on-background">How It Works</h2>
+
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-10">
+
+          <!-- Step 1 -->
+          <article class="flex-1 flex flex-col items-center text-center px-4">
+            <div
+              class="w-12 h-12 bg-white border border-primary text-primary flex items-center justify-center mb-6 font-mono text-lg font-bold"
+              style="box-shadow: 4px 4px 0px 0px rgba(0,0,0,1);"
+              aria-hidden="true"
+            >1</div>
+            <span class="material-symbols-outlined text-3xl mb-4 text-on-background" aria-hidden="true">account_tree</span>
+            <h3 class="font-headline font-bold text-xl mb-2 text-on-background">Sign Up</h3>
+            <p class="text-on-surface-variant text-sm">Create account, add payment method</p>
+          </article>
+
+          <!-- Divider -->
+          <div class="hidden md:block h-px flex-1 self-start mt-16" style="background: var(--color-outline-variant);"></div>
+
+          <!-- Step 2 -->
+          <article class="flex-1 flex flex-col items-center text-center px-4">
+            <div
+              class="w-12 h-12 bg-white border border-primary text-primary flex items-center justify-center mb-6 font-mono text-lg font-bold"
+              style="box-shadow: 4px 4px 0px 0px rgba(0,0,0,1);"
+              aria-hidden="true"
+            >2</div>
+            <span class="material-symbols-outlined text-3xl mb-4 text-on-background" aria-hidden="true">vpn_key</span>
+            <h3 class="font-headline font-bold text-xl mb-2 text-on-background">Get API Key</h3>
+            <p class="text-on-surface-variant text-sm">One key for all models</p>
+          </article>
+
+          <!-- Divider -->
+          <div class="hidden md:block h-px flex-1 self-start mt-16" style="background: var(--color-outline-variant);"></div>
+
+          <!-- Step 3 -->
+          <article class="flex-1 flex flex-col items-center text-center px-4">
+            <div
+              class="w-12 h-12 bg-white border border-primary text-primary flex items-center justify-center mb-6 font-mono text-lg font-bold"
+              style="box-shadow: 4px 4px 0px 0px rgba(0,0,0,1);"
+              aria-hidden="true"
+            >3</div>
+            <span class="material-symbols-outlined text-3xl mb-4 text-on-background" aria-hidden="true">code_blocks</span>
+            <h3 class="font-headline font-bold text-xl mb-2 text-on-background">Start Building</h3>
+            <p class="text-on-surface-variant text-sm">Point your code to our endpoint</p>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         PRICING
+    ============================================================ -->
+    <section class="py-32 bg-surface" aria-labelledby="pricing-heading">
+      <div class="max-w-7xl mx-auto px-6 md:px-8">
+
+        <div class="text-center mb-20">
+          <h2
+            id="pricing-heading"
+            class="font-headline font-bold text-5xl mb-6 text-on-background"
+          >
+            Simple, Transparent Pricing
+          </h2>
+          <p class="text-on-surface-variant text-lg">Pay-as-you-go. No monthly fees. No hidden costs.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+          <!-- Open Source -->
+          <article
+            class="bg-white p-10 flex flex-col h-full card-hover transition-all duration-500"
+            style="border: 1px solid var(--color-outline-variant);"
+          >
+            <span class="text-xs font-mono uppercase tracking-widest text-on-surface-variant mb-4">Entry Tier</span>
+            <h3 class="font-headline font-bold text-2xl mb-6 text-on-background">Open Source Models</h3>
+            <div class="flex items-baseline gap-1 mb-8">
+              <span class="text-4xl font-bold text-on-background">From $0.10</span>
+              <span class="text-on-surface-variant text-sm">/ 1M tokens</span>
+            </div>
+            <ul class="space-y-4 mb-12 flex-grow" role="list">
+              <li class="flex items-center gap-3 text-sm text-on-surface-variant">
+                <span class="material-symbols-outlined text-sm" aria-hidden="true">check</span>
+                Public model access
+              </li>
+              <li class="flex items-center gap-3 text-sm text-on-surface-variant">
+                <span class="material-symbols-outlined text-sm" aria-hidden="true">check</span>
+                Standard rate limits
+              </li>
+              <li class="flex items-center gap-3 text-sm text-on-surface-variant">
+                <span class="material-symbols-outlined text-sm" aria-hidden="true">check</span>
+                Community support
+              </li>
+            </ul>
+            <a
+              href="#"
+              class="w-full py-4 font-mono text-xs font-bold uppercase tracking-widest text-center block transition-all hover:bg-primary hover:text-on-primary"
+              style="background: var(--color-surface-container-high); border: 1px solid var(--color-primary);"
+            >
+              Get Access
+            </a>
+          </article>
+
+          <!-- Premium -->
+          <article
+            class="bg-white p-10 flex flex-col h-full card-hover transition-all duration-500"
+            style="border: 1px solid var(--color-outline-variant);"
+          >
+            <span class="text-xs font-mono uppercase tracking-widest text-on-surface-variant mb-4">Performance Tier</span>
+            <h3 class="font-headline font-bold text-2xl mb-6 text-on-background">Premium Models</h3>
+            <div class="flex items-baseline gap-1 mb-8">
+              <span class="text-3xl font-bold text-on-background">Competitive rates</span>
+            </div>
+            <ul class="space-y-4 mb-12 flex-grow" role="list">
+              <li class="flex items-center gap-3 text-sm text-on-surface-variant">
+                <span class="material-symbols-outlined text-sm" aria-hidden="true">check</span>
+                High-priority routing
+              </li>
+              <li class="flex items-center gap-3 text-sm text-on-surface-variant">
+                <span class="material-symbols-outlined text-sm" aria-hidden="true">check</span>
+                Extended rate limits
+              </li>
+              <li class="flex items-center gap-3 text-sm text-on-surface-variant">
+                <span class="material-symbols-outlined text-sm" aria-hidden="true">check</span>
+                Priority support
+              </li>
+            </ul>
+            <a
+              href="#"
+              class="w-full py-4 font-mono text-xs font-bold uppercase tracking-widest text-center block transition-all hover:bg-primary hover:text-on-primary"
+              style="background: var(--color-surface-container-high); border: 1px solid var(--color-primary);"
+            >
+              Get Access
+            </a>
+          </article>
+
+          <!-- lumii-auto -->
+          <article
+            class="bg-white p-10 flex flex-col h-full card-hover transition-all duration-500"
+            style="border: 1px solid var(--color-outline-variant);"
+          >
+            <span class="text-xs font-mono uppercase tracking-widest text-on-surface-variant mb-4">Smart Routing</span>
+            <h3 class="font-headline font-bold text-2xl mb-6 text-on-background">lumii-auto</h3>
+            <div class="flex items-baseline gap-1 mb-8">
+              <span class="text-3xl font-bold text-on-background">Optimized pricing</span>
+            </div>
+            <ul class="space-y-4 mb-12 flex-grow" role="list">
+              <li class="flex items-center gap-3 text-sm text-on-surface-variant">
+                <span class="material-symbols-outlined text-sm" aria-hidden="true">check</span>
+                Automatic model selection
+              </li>
+              <li class="flex items-center gap-3 text-sm text-on-surface-variant">
+                <span class="material-symbols-outlined text-sm" aria-hidden="true">check</span>
+                Cost-performance optimized
+              </li>
+              <li class="flex items-center gap-3 text-sm text-on-surface-variant">
+                <span class="material-symbols-outlined text-sm" aria-hidden="true">check</span>
+                Single endpoint, any task
+              </li>
+            </ul>
+            <a
+              href="#"
+              class="w-full py-4 font-mono text-xs font-bold uppercase tracking-widest text-center block transition-all hover:bg-primary hover:text-on-primary"
+              style="background: var(--color-surface-container-high); border: 1px solid var(--color-primary);"
+            >
+              Get Access
+            </a>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ============================================================
+       FOOTER
+  ============================================================ -->
+  <footer class="w-full bg-white" style="border-top: 1px solid #e8e8e8;" role="contentinfo">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center px-8 md:px-12 py-16 gap-8 max-w-7xl mx-auto">
+
+      <div class="flex flex-col gap-3">
+        <div class="text-lg font-bold text-on-background uppercase tracking-widest font-headline">LumiiAI</div>
+        <p class="font-mono text-xs tracking-tight text-on-surface-variant">
+          Clean &amp; Stable AI token API access.
+        </p>
+        <p class="font-mono text-xs text-on-surface-variant">© 2026 LumiiAI. All rights reserved.</p>
+      </div>
+
+      <nav aria-label="Footer navigation">
+        <div class="flex flex-wrap gap-x-10 gap-y-4">
+          <a class="text-on-surface-variant font-mono text-xs font-medium hover:text-on-background underline decoration-1 underline-offset-4 transition-colors" href="#">Documentation</a>
+          <a class="text-on-surface-variant font-mono text-xs font-medium hover:text-on-background underline decoration-1 underline-offset-4 transition-colors" href="#">API Reference</a>
+          <a class="text-on-surface-variant font-mono text-xs font-medium hover:text-on-background underline decoration-1 underline-offset-4 transition-colors" href="#">Status</a>
+          <a class="text-on-surface-variant font-mono text-xs font-medium hover:text-on-background underline decoration-1 underline-offset-4 transition-colors" href="#">Support</a>
+          <a class="text-on-surface-variant font-mono text-xs font-medium hover:text-on-background underline decoration-1 underline-offset-4 transition-colors" href="#">Twitter / X</a>
+          <a class="text-on-surface-variant font-mono text-xs font-medium hover:text-on-background underline decoration-1 underline-offset-4 transition-colors" href="#">Discord</a>
+          <a class="text-on-surface-variant font-mono text-xs font-medium hover:text-on-background underline decoration-1 underline-offset-4 transition-colors" href="#">GitHub</a>
+          <a class="text-on-surface-variant font-mono text-xs font-medium hover:text-on-background underline decoration-1 underline-offset-4 transition-colors" href="#">Privacy</a>
+          <a class="text-on-surface-variant font-mono text-xs font-medium hover:text-on-background underline decoration-1 underline-offset-4 transition-colors" href="#">Terms</a>
+        </div>
+      </nav>
+
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script type="module">
+    import { initCopyButtons, initMobileNav, initSmoothScroll } from './main.js'
+    initCopyButtons()
+    initMobileNav()
+    initSmoothScroll()
+  </script>
+
+</body>
+</html>
