@@ -70,6 +70,11 @@
   --radius-full: 0.75rem;
 }
 
+/* Force light mode — prevent browsers/WebViews from auto-applying dark mode */
+:root {
+  color-scheme: light only;
+}
+
 /* Base */
 body {
   font-family: var(--font-body);
