@@ -1,0 +1,342 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>LumiiAI - Clean &amp; Stable AI Token API Access</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary-fixed-dim": "#474747",
+              "on-tertiary-container": "#ffffff",
+              "inverse-surface": "#303030",
+              "surface-container-lowest": "#ffffff",
+              "on-secondary": "#ffffff",
+              "on-primary-fixed-variant": "#e2e2e2",
+              "secondary-fixed-dim": "#acabab",
+              "on-background": "#1b1b1b",
+              "secondary": "#5f5e5e",
+              "error": "#ba1a1a",
+              "surface-tint": "#5e5e5e",
+              "on-primary-container": "#ffffff",
+              "tertiary-fixed-dim": "#474747",
+              "surface-dim": "#dadada",
+              "primary-fixed": "#5e5e5e",
+              "surface-container": "#eeeeee",
+              "background": "#f9f9f9",
+              "on-tertiary-fixed": "#ffffff",
+              "on-surface": "#1b1b1b",
+              "error-container": "#ffdad6",
+              "surface-container-low": "#f3f3f3",
+              "surface-container-highest": "#e2e2e2",
+              "on-surface-variant": "#474747",
+              "primary-container": "#3b3b3b",
+              "outline-variant": "#c6c6c6",
+              "on-secondary-fixed-variant": "#3b3b3b",
+              "on-primary-fixed": "#ffffff",
+              "surface": "#f9f9f9",
+              "on-tertiary": "#e2e2e2",
+              "on-error": "#ffffff",
+              "on-error-container": "#410002",
+              "outline": "#777777",
+              "surface-variant": "#e2e2e2",
+              "secondary-fixed": "#c8c6c6",
+              "primary": "#000000",
+              "tertiary": "#3b3b3b",
+              "inverse-primary": "#c6c6c6",
+              "surface-container-high": "#e8e8e8",
+              "secondary-container": "#d6d4d3",
+              "tertiary-container": "#747474",
+              "on-secondary-fixed": "#1b1c1c",
+              "tertiary-fixed": "#5e5e5e",
+              "surface-bright": "#f9f9f9",
+              "inverse-on-surface": "#f1f1f1",
+              "on-secondary-container": "#1b1c1c",
+              "on-primary": "#e2e2e2",
+              "on-tertiary-fixed-variant": "#e2e2e2"
+            },
+            fontFamily: {
+              "headline": ["Space Grotesk"],
+              "body": ["Inter"],
+              "label": ["Inter"],
+              "mono": ["JetBrains Mono", "monospace"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+      body { font-family: 'Inter', sans-serif; }
+      .font-headline { font-family: 'Space Grotesk', sans-serif; }
+      .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; }
+      .glass-nav { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+      .technical-grid {
+        background-image: linear-gradient(to right, #e2e2e2 1px, transparent 1px), linear-gradient(to bottom, #e2e2e2 1px, transparent 1px);
+        background-size: 40px 40px;
+      }
+      .glow-focal {
+        box-shadow: 0 0 20px 2px rgba(94, 94, 94, 0.2);
+      }
+      .mono-glow {
+        box-shadow: 0 0 40px -10px rgba(0, 0, 0, 0.15);
+      }
+      .card-glow:hover {
+        box-shadow: 0 0 30px -5px rgba(0, 0, 0, 0.1);
+      }
+    </style>
+</head>
+<body class="bg-surface text-on-background selection:bg-primary selection:text-on-primary">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 glass-nav bg-stone-50/70 dark:bg-zinc-950/70 border-b border-outline-variant/30">
+<div class="flex justify-between items-center px-8 py-4 max-w-screen-2xl mx-auto">
+<div class="flex items-center gap-8">
+<a class="text-xl font-bold tracking-tighter text-zinc-900 dark:text-white flex items-center gap-2" href="#" style=""><img alt="LumiiAI Logo" class="w-8 h-8 block" src="https://lh3.googleusercontent.com/aida/ADBb0uiMCS4ElrMJj8TwiXQMVLB8pum9i04B1s1q-G1dITsdJ5FybAQqhd5yFrPQpqEISe6hMUHQh0ohidramRSNAKvfg9ZEJj_hq33zaYH_v6CVdx5NQeTgB-VZtJP4bwf49tTgv0GxXGcCkh0bZdbYazA92sGq3XRyESfkX8Fqk83oPGjrpMTvvWwwSbA8DSYf1en8PGa21RkQPvHPd3dJ3dljrkwPhJNW31jDGpoq_Qd9Y5AI7VDeqnbVkg" style=""><span class="font-headline font-bold text-xl tracking-tight text-zinc-900 dark:text-white" style="">LumiiAI</span></a>
+<div class="hidden md:flex items-center gap-8"><a class="text-neutral-500 dark:text-neutral-400 font-medium hover:text-neutral-950 transition-colors duration-200 text-sm" href="#" style="">Documentation</a><a class="text-neutral-500 dark:text-neutral-400 font-medium hover:text-neutral-950 transition-colors duration-200 text-sm" href="#" style="">API Reference</a><a class="text-neutral-500 dark:text-neutral-400 font-medium hover:text-neutral-950 transition-colors duration-200 text-sm" href="#" style="">Status</a><a class="text-neutral-500 dark:text-neutral-400 font-medium hover:text-neutral-950 transition-colors duration-200 text-sm" href="#" style="">Support</a></div>
+</div>
+<div class="flex items-center gap-4">
+<button class="bg-primary text-on-primary px-5 py-2 text-xs font-bold tracking-tight hover:opacity-90 active:scale-95 transition-all" style="">GET STARTED</button>
+</div>
+</div>
+</nav>
+<main class="pt-0">
+<!-- Hero Section (Merged from SCREEN_7 style) -->
+<header class="relative min-h-[870px] flex items-center pt-20 overflow-hidden technical-grid">
+<div class="absolute inset-0 bg-gradient-to-b from-transparent via-surface/80 to-surface"></div>
+<div class="mx-auto px-8 w-full grid grid-cols-1 lg:grid-cols-2 relative z-10 gap-12 lg:gap-16 items-center max-w-5xl">
+<div class="flex flex-col justify-center">
+<h1 class="font-headline text-5xl md:text-6xl font-bold tracking-tighter leading-[1.1] text-on-background mb-6" style="">
+                    Clean &amp; Stable <br>AI token API access.
+                </h1>
+<p class="text-on-surface-variant text-lg max-w-md mb-8 leading-relaxed" style="">Direct Sourced. Operationally excellent. Not a Marketplace.</p>
+<div class="flex items-center gap-4">
+<button class="bg-primary text-on-primary px-8 py-3.5 font-bold transition-all hover:bg-primary-container active:scale-95" style="">Get Started</button>
+<button class="bg-white border border-primary text-primary px-8 py-3.5 font-bold transition-all hover:bg-surface-container-low active:scale-95" style="">View Docs</button>
+</div>
+</div>
+<div class="flex items-center justify-center lg:justify-end">
+<div class="w-full max-w-md bg-inverse-surface rounded-xl p-6 shadow-2xl relative group mono-glow">
+<div class="absolute -inset-0.5 bg-gradient-to-r from-primary/20 to-outline/20 rounded-xl blur opacity-30"></div>
+<div class="relative bg-inverse-surface rounded-lg overflow-hidden border border-outline-variant/10">
+<div class="flex items-center justify-between px-4 py-3 bg-white/5 border-b border-white/5">
+<div class="flex gap-2">
+<div class="w-3 h-3 rounded-full bg-neutral-600"></div>
+<div class="w-3 h-3 rounded-full bg-neutral-600"></div>
+<div class="w-3 h-3 rounded-full bg-neutral-600"></div>
+</div>
+<span class="text-[10px] font-mono text-neutral-500 tracking-widest uppercase" style="">main.py</span>
+</div>
+<pre class="p-6 text-xs font-mono leading-relaxed overflow-x-auto"><code class="text-on-primary"><span class="text-neutral-500" style="">import openai</span>
+
+client = openai.OpenAI(
+    base_url=<span class="text-neutral-300" style="">"https://api.lumii-ai.io/v1"</span>,
+    api_key=<span class="text-neutral-300" style="">"your-key"</span>
+)
+
+response = client.chat.completions.create(
+    model=<span class="text-neutral-300" style="">"lumii-auto"</span>,
+    messages=[{<span class="text-neutral-300" style="">"role"</span>: <span class="text-neutral-300" style="">"user"</span>, <span class="text-neutral-300" style="">"content"</span>: <span class="text-neutral-300" style="">"Hello"</span>}]
+)</code></pre>
+</div>
+</div>
+</div>
+</div>
+</header>
+<!-- Value Prop (Harder style from SCREEN_9) -->
+<section class="py-24 bg-[#333333]">
+<div class="max-w-7xl mx-auto px-8">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+<div class="flex flex-col space-y-4 text-center items-center">
+<span class="material-symbols-outlined text-6xl text-white opacity-90 block w-16 h-16 flex items-center justify-center mx-auto" data-icon="database" style="">database</span>
+<h3 class="font-headline font-bold text-2xl text-white" style="">Direct Sourced</h3>
+<p class="text-neutral-300 font-body" style="">Models sourced directly from providers. No middlemen.</p>
+</div>
+<div class="flex flex-col space-y-4 text-center items-center">
+<span class="material-symbols-outlined text-6xl text-white opacity-90 block w-16 h-16 flex items-center justify-center mx-auto" data-icon="tune" style="">tune</span>
+<h3 class="font-headline font-bold text-2xl text-white" style="">Operationally Excellent</h3>
+<p class="text-neutral-300 font-body" style="">Lean ops, quality infrastructure, stable delivery.</p>
+</div>
+<div class="flex flex-col space-y-4 text-center items-center">
+<span class="material-symbols-outlined text-6xl text-white opacity-90 block w-16 h-16 flex items-center justify-center mx-auto" data-icon="verified" style="">verified</span>
+<h3 class="font-headline font-bold text-2xl text-white" style="">Clean &amp; Stable</h3>
+<p class="text-neutral-300 font-body" style="">No bait-and-switch. Just reliable API access.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Everything You Expect (Product visual from SCREEN_21) -->
+<section class="py-32 bg-surface">
+<div class="max-w-7xl mx-auto px-8 grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+<div>
+<h2 class="font-headline font-bold text-5xl mb-8" style="">Everything You Expect</h2>
+<div class="space-y-6 mb-12">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-xl" data-icon="task_alt" style="">task_alt</span>
+<span class="font-body text-lg" style="">Smart routing (lumii-auto)</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-xl" data-icon="task_alt" style="">task_alt</span>
+<span class="font-body text-lg" style="">Multiple payment options</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-xl" data-icon="task_alt" style="">task_alt</span>
+<span class="font-body text-lg" style="">Multiple API formats</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-xl" data-icon="task_alt" style="">task_alt</span>
+<span class="font-body text-lg" style="">Transparent pricing</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-xl" data-icon="task_alt" style="">task_alt</span>
+<span class="font-body text-lg" style="">Model verification</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-xl" data-icon="task_alt" style="">task_alt</span>
+<span class="font-body text-lg" style="">Pay-as-you-go, crypto supported</span>
+</div>
+</div>
+<p class="text-on-surface-variant font-body italic border-l-4 border-outline-variant pl-4 py-2" style="">
+                    Table stakes. The real value is stability from direct source &amp; operation.
+                </p>
+</div>
+<div class="bg-white p-12 rounded-xl shadow-[0_32px_64px_-12px_rgba(0,0,0,0.08)] border border-neutral-100 flex flex-col gap-8">
+<div class="flex justify-between items-center pb-6 border-b border-neutral-100">
+<span class="text-neutral-500 font-medium font-body uppercase text-xs tracking-widest" style="">API Endpoint</span>
+<code class="bg-neutral-50 px-4 py-2 rounded text-sm font-mono text-neutral-900">api.lumii-ai.io</code>
+</div>
+<div class="flex justify-between items-center pb-6 border-b border-neutral-100">
+<span class="text-neutral-500 font-medium font-body uppercase text-xs tracking-widest" style="">Format</span>
+<code class="bg-neutral-50 px-4 py-2 rounded text-sm font-mono text-neutral-900">OpenAI Compatible</code>
+</div>
+<div class="flex justify-between items-center pb-6 border-b border-neutral-100">
+<span class="text-neutral-500 font-medium font-body uppercase text-xs tracking-widest" style="">Authentication</span>
+<code class="bg-neutral-50 px-4 py-2 rounded text-sm font-mono text-neutral-900">API Key</code>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-neutral-500 font-medium font-body uppercase text-xs tracking-widest" style="">Billing</span>
+<code class="bg-neutral-50 px-4 py-2 rounded text-sm font-mono text-neutral-900">Pay-as-you-go</code>
+</div>
+</div>
+</div>
+</section>
+<!-- How It Works Section -->
+<section class="py-24 bg-white border-y border-outline-variant/10">
+<div class="max-w-7xl mx-auto px-8">
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-12">
+<div class="flex-1 flex flex-col items-center text-center px-4">
+<div class="w-12 h-12 bg-white border border-primary text-primary flex items-center justify-center mb-6 font-mono text-lg font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]" style="">1</div>
+<span class="material-symbols-outlined text-3xl mb-4" data-icon="account_tree" style="">account_tree</span>
+<h4 class="font-headline font-bold text-xl mb-2" style="">Sign Up</h4>
+<p class="text-on-surface-variant text-sm font-body" style="">Create account, add payment method</p>
+</div>
+<div class="hidden md:block h-px flex-1 bg-outline-variant mt-8"></div>
+<div class="flex-1 flex flex-col items-center text-center px-4">
+<div class="w-12 h-12 bg-white border border-primary text-primary flex items-center justify-center mb-6 font-mono text-lg font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]" style="">2</div>
+<span class="material-symbols-outlined text-3xl mb-4" data-icon="vpn_key" style="">vpn_key</span>
+<h4 class="font-headline font-bold text-xl mb-2" style="">Get API Key</h4>
+<p class="text-on-surface-variant text-sm font-body" style="">One key for all models</p>
+</div>
+<div class="hidden md:block h-px flex-1 bg-outline-variant mt-8"></div>
+<div class="flex-1 flex flex-col items-center text-center px-4">
+<div class="w-12 h-12 bg-white border border-primary text-primary flex items-center justify-center mb-6 font-mono text-lg font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]" style="">3</div>
+<span class="material-symbols-outlined text-3xl mb-4" data-icon="code_blocks" style="">code_blocks</span>
+<h4 class="font-headline font-bold text-xl mb-2" style="">Start Building</h4>
+<p class="text-on-surface-variant text-sm font-body" style="">Point your code to our endpoint</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Pricing (Uniform cards from SCREEN_13) -->
+<section class="py-32 bg-surface">
+<div class="max-w-7xl mx-auto px-8">
+<div class="text-center mb-24">
+<h2 class="font-headline font-bold text-5xl mb-6" style="">Simple, Transparent Pricing</h2>
+<p class="text-on-surface-variant text-lg" style="">Pay-as-you-go. No monthly fees. No hidden costs.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<!-- Card 1 -->
+<div class="bg-white p-10 flex flex-col h-full border border-outline-variant transition-all hover:shadow-xl duration-500">
+<span class="text-xs font-mono uppercase tracking-widest text-neutral-500 mb-4" style="">Entry Tier</span>
+<h3 class="font-headline font-bold text-2xl mb-6" style="">Open Source Models</h3>
+<div class="flex items-baseline gap-1 mb-8">
+<span class="text-4xl font-bold" style="">From $0.10</span>
+<span class="text-on-surface-variant text-sm" style="">/ 1M tokens</span>
+</div>
+<ul class="space-y-4 mb-12 flex-grow">
+<li class="flex items-center gap-3 text-sm text-on-surface-variant" style="">
+<span class="material-symbols-outlined text-sm" style="">check</span> Public model access
+                        </li>
+<li class="flex items-center gap-3 text-sm text-on-surface-variant" style="">
+<span class="material-symbols-outlined text-sm" style="">check</span> Standard rate limits
+                        </li>
+<li class="flex items-center gap-3 text-sm text-on-surface-variant" style="">
+<span class="material-symbols-outlined text-sm" style="">check</span> Community support
+                        </li>
+</ul>
+<button class="w-full bg-surface-container-high py-4 font-mono text-xs font-bold uppercase tracking-widest border border-primary hover:bg-primary hover:text-on-primary transition-all" style="">Get Access</button>
+</div>
+<!-- Card 2 -->
+<div class="bg-white p-10 flex flex-col h-full border border-outline-variant transition-all hover:shadow-xl duration-500">
+<span class="text-xs font-mono uppercase tracking-widest text-neutral-500 mb-4" style="">Performance Tier</span>
+<h3 class="font-headline font-bold text-2xl mb-6" style="">Premium Models</h3>
+<div class="flex items-baseline gap-1 mb-8">
+<span class="text-4xl font-bold" style="">Competitive rates</span>
+</div>
+<ul class="space-y-4 mb-12 flex-grow">
+<li class="flex items-center gap-3 text-sm text-on-surface-variant" style="">
+<span class="material-symbols-outlined text-sm" style="">check</span> High-priority routing
+                        </li>
+<li class="flex items-center gap-3 text-sm text-on-surface-variant" style="">
+<span class="material-symbols-outlined text-sm" style="">check</span> Extended rate limits
+                        </li>
+<li class="flex items-center gap-3 text-sm text-on-surface-variant" style="">
+<span class="material-symbols-outlined text-sm" style="">check</span> Priority support
+                        </li>
+</ul>
+<button class="w-full bg-surface-container-high py-4 font-mono text-xs font-bold uppercase tracking-widest border border-primary hover:bg-primary hover:text-on-primary transition-all" style="">Get Access</button>
+</div>
+<!-- Card 3 -->
+<div class="bg-white p-10 flex flex-col h-full border border-outline-variant transition-all hover:shadow-xl duration-500">
+<span class="text-xs font-mono uppercase tracking-widest text-neutral-500 mb-4" style="">Enterprise Tier</span>
+<h3 class="font-headline font-bold text-2xl mb-6" style="">lumii-auto</h3>
+<div class="flex items-baseline gap-1 mb-8">
+<span class="text-4xl font-bold" style="">Optimized pricing</span>
+</div>
+<ul class="space-y-4 mb-12 flex-grow">
+<li class="flex items-center gap-3 text-sm text-on-surface-variant" style="">
+<span class="material-symbols-outlined text-sm" style="">check</span> Autonomous reasoning
+                        </li>
+<li class="flex items-center gap-3 text-sm text-on-surface-variant" style="">
+<span class="material-symbols-outlined text-sm" style="">check</span> Custom model tuning
+                        </li>
+<li class="flex items-center gap-3 text-sm text-on-surface-variant" style="">
+<span class="material-symbols-outlined text-sm" style="">check</span> Dedicated TAM
+                        </li>
+</ul>
+<button class="w-full bg-surface-container-high py-4 font-mono text-xs font-bold uppercase tracking-widest border border-primary hover:bg-primary hover:text-on-primary transition-all" style="">Get Access</button>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full border-t border-neutral-200 bg-white">
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center px-12 py-16 gap-8 max-w-7xl mx-auto">
+<div class="flex flex-col gap-4">
+<div class="text-lg font-bold text-neutral-950 uppercase tracking-widest font-headline" style="">LumiiAI</div>
+<p class="font-mono text-[11px] tracking-tight text-neutral-500" style="">© 2024 LumiiAI. Precision Engineered.</p>
+</div>
+<div class="flex flex-wrap gap-x-12 gap-y-6">
+<a class="text-neutral-500 font-mono text-xs font-medium hover:text-neutral-950 underline decoration-1 underline-offset-4" href="#" style="">Twitter</a>
+<a class="text-neutral-500 font-mono text-xs font-medium hover:text-neutral-950 underline decoration-1 underline-offset-4" href="#" style="">Discord</a>
+<a class="text-neutral-500 font-mono text-xs font-medium hover:text-neutral-950 underline decoration-1 underline-offset-4" href="#" style="">GitHub</a>
+<a class="text-neutral-500 font-mono text-xs font-medium hover:text-neutral-950 underline decoration-1 underline-offset-4" href="#" style="">Privacy</a>
+<a class="text-neutral-500 font-mono text-xs font-medium hover:text-neutral-950 underline decoration-1 underline-offset-4" href="#" style="">Terms</a>
+</div>
+</div>
+</footer>
+</body></html>
