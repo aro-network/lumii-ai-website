@@ -3,12 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="light" />
 
   <!-- SEO -->
   <title>LumiiAI — Clean &amp; Stable AI Token API Access</title>
   <meta name="description" content="Direct sourced, operationally excellent AI token API access. Not a marketplace. OpenAI-compatible endpoint with transparent pricing and smart routing." />
   <meta name="keywords" content="AI API, LLM API, OpenAI compatible, language model API, AI token access, lumii-auto" />
-  <meta name="color-scheme" content="light dark" />
+  <link rel="canonical" href="https://lumii-ai.io" />
 
   <!-- Open Graph -->
   <meta property="og:type" content="website" />
@@ -27,14 +28,18 @@
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="icon" type="image/png" href="/favicon.png" />
 
-  <!-- Fonts -->
+  <!-- Fonts (no icon font needed) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
 
   <!-- Styles -->
   <link rel="stylesheet" href="./style.css" />
+
+  <!-- Inline SVG icon helpers -->
+  <style>
+    .icon { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  </style>
 </head>
 
 <body class="bg-surface text-on-background antialiased">
@@ -69,14 +74,9 @@
 
       <!-- CTA + Mobile toggle -->
       <div class="flex items-center gap-4">
-        <a
-          href="#"
-          class="bg-primary text-on-primary px-5 py-2 text-xs font-bold tracking-tight hover:opacity-90 active:scale-95 transition-all"
-        >
+        <a href="#" class="bg-primary text-on-primary px-5 py-2 text-xs font-bold tracking-tight hover:opacity-90 active:scale-95 transition-all">
           GET STARTED
         </a>
-
-        <!-- Mobile hamburger -->
         <button
           id="mobile-nav-toggle"
           class="md:hidden flex flex-col gap-1.5 p-2"
@@ -92,13 +92,7 @@
     </div>
 
     <!-- Mobile nav menu -->
-    <div
-      id="mobile-nav-menu"
-      style="display:none"
-      class="flex-col gap-0 border-t md:hidden"
-      style="border-color: rgba(198,198,198,0.3);"
-      data-open="false"
-    >
+    <div id="mobile-nav-menu" style="display:none" class="flex-col gap-0 border-t md:hidden" data-open="false">
       <a class="px-6 py-4 text-sm font-medium text-on-surface-variant hover:bg-surface-container-low transition-colors" href="#">Documentation</a>
       <a class="px-6 py-4 text-sm font-medium text-on-surface-variant hover:bg-surface-container-low transition-colors" href="#">API Reference</a>
       <a class="px-6 py-4 text-sm font-medium text-on-surface-variant hover:bg-surface-container-low transition-colors" href="#">Status</a>
@@ -116,10 +110,8 @@
       style="min-height: 100vh; padding-top: 80px;"
       aria-labelledby="hero-headline"
     >
-      <!-- Atmospheric fade overlay -->
       <div class="absolute inset-0 bg-gradient-to-b from-transparent via-surface/80 to-surface pointer-events-none"></div>
 
-      <!-- Main content -->
       <div class="mx-auto px-6 w-full flex flex-wrap justify-center items-center relative z-10 gap-12 max-w-7xl flex-1" style="padding-top: 6vh; padding-bottom: 4vh;">
 
         <!-- Left: Copy -->
@@ -142,11 +134,8 @@
         <!-- Right: Code block -->
         <div class="flex items-center justify-center" style="flex: 1 1 340px; max-width: 560px;">
           <div class="code-block-wrapper w-full rounded-xl relative group mono-glow" style="background:#1e1e1e;">
-            <!-- Subtle glow ring -->
             <div class="absolute -inset-0.5 bg-gradient-to-r from-primary/20 to-outline/20 rounded-xl blur opacity-30 pointer-events-none"></div>
-
             <div class="relative rounded-xl overflow-hidden" style="border: 1px solid rgba(255,255,255,0.06);">
-              <!-- Title bar -->
               <div class="flex items-center justify-between px-4 py-3" style="background:rgba(255,255,255,0.04); border-bottom: 1px solid rgba(255,255,255,0.05);">
                 <div class="flex gap-2" aria-hidden="true">
                   <div class="w-3 h-3 rounded-full" style="background:#3a3a3a;"></div>
@@ -155,20 +144,18 @@
                 </div>
                 <div class="flex items-center gap-3">
                   <span class="text-[10px] font-mono tracking-widest uppercase" style="color:#6b7280;">main.py</span>
-                  <!-- Copy button -->
                   <button
                     class="copy-btn flex items-center gap-1.5 px-2.5 py-1 rounded text-[10px] font-mono tracking-wide transition-all hover:opacity-90 active:scale-95"
                     style="background:rgba(255,255,255,0.08); color:#9ca3af; border: 1px solid rgba(255,255,255,0.1);"
                     data-copy-target="hero-code-snippet"
                     aria-label="Copy code to clipboard"
                   >
-                    <span class="material-symbols-outlined text-xs" style="font-size:14px; color:#9ca3af;">content_copy</span>
+                    <!-- copy icon -->
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                     <span data-copy-label>Copy</span>
                   </button>
                 </div>
               </div>
-
-              <!-- Code -->
               <pre class="p-6 text-xs font-mono leading-relaxed overflow-x-auto" aria-label="Python code example"><code id="hero-code-snippet" style="color:#e2e2e2;"><span style="color:#6b7280;">import openai</span>
 
 client = openai.OpenAI(
@@ -191,31 +178,30 @@ response = client.chat.completions.create(
     <!-- ============================================================
          VALUE PROPOSITION
     ============================================================ -->
-    <section
-      class="py-24"
-      style="background:#333333;"
-      aria-labelledby="value-prop-heading"
-    >
+    <section class="py-24" style="background:#333333;" aria-labelledby="value-prop-heading">
       <h2 id="value-prop-heading" class="sr-only">Why LumiiAI</h2>
       <div class="max-w-7xl mx-auto px-6 md:px-8">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
 
           <article class="flex flex-col space-y-4 text-center items-center">
-            <span class="material-symbols-outlined text-6xl text-white opacity-90" aria-hidden="true">database</span>
+            <!-- Database icon -->
+            <svg class="w-12 h-12 text-white opacity-90" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
             <h3 class="font-headline font-bold text-2xl text-white">Direct Sourced</h3>
-            <p class="text-neutral-300" style="font-family: var(--font-body);">Models sourced directly from providers. No middlemen.</p>
+            <p class="text-neutral-300">Models sourced directly from providers. No middlemen.</p>
           </article>
 
           <article class="flex flex-col space-y-4 text-center items-center">
-            <span class="material-symbols-outlined text-6xl text-white opacity-90" aria-hidden="true">tune</span>
+            <!-- Settings/tune icon -->
+            <svg class="w-12 h-12 text-white opacity-90" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="8" cy="6" r="2" fill="currentColor" stroke="none"/><circle cx="16" cy="12" r="2" fill="currentColor" stroke="none"/><circle cx="10" cy="18" r="2" fill="currentColor" stroke="none"/></svg>
             <h3 class="font-headline font-bold text-2xl text-white">Operationally Excellent</h3>
-            <p class="text-neutral-300" style="font-family: var(--font-body);">Lean ops, quality infrastructure, stable delivery.</p>
+            <p class="text-neutral-300">Lean ops, quality infrastructure, stable delivery.</p>
           </article>
 
           <article class="flex flex-col space-y-4 text-center items-center">
-            <span class="material-symbols-outlined text-6xl text-white opacity-90" aria-hidden="true">verified</span>
+            <!-- Shield check icon -->
+            <svg class="w-12 h-12 text-white opacity-90" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
             <h3 class="font-headline font-bold text-2xl text-white">Clean &amp; Stable</h3>
-            <p class="text-neutral-300" style="font-family: var(--font-body);">No bait-and-switch. Just reliable API access.</p>
+            <p class="text-neutral-300">No bait-and-switch. Just reliable API access.</p>
           </article>
 
         </div>
@@ -228,70 +214,59 @@ response = client.chat.completions.create(
     <section class="py-32 bg-surface" aria-labelledby="features-heading">
       <div class="max-w-7xl mx-auto px-6 md:px-8 grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
 
-        <!-- Left: Feature list -->
         <div>
-          <h2
-            id="features-heading"
-            class="font-headline font-bold text-5xl mb-8 text-on-background"
-          >
+          <h2 id="features-heading" class="font-headline font-bold text-5xl mb-8 text-on-background">
             Everything You Expect
           </h2>
-
           <ul class="space-y-5 mb-12" role="list">
             <li class="flex items-center gap-3">
-              <span class="material-symbols-outlined text-xl text-primary" aria-hidden="true">task_alt</span>
+              <!-- check-circle -->
+              <svg class="w-5 h-5 flex-shrink-0 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg>
               <span class="text-lg text-on-background">Smart routing (lumii-auto)</span>
             </li>
             <li class="flex items-center gap-3">
-              <span class="material-symbols-outlined text-xl text-primary" aria-hidden="true">task_alt</span>
+              <svg class="w-5 h-5 flex-shrink-0 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg>
               <span class="text-lg text-on-background">Multiple payment options</span>
             </li>
             <li class="flex items-center gap-3">
-              <span class="material-symbols-outlined text-xl text-primary" aria-hidden="true">task_alt</span>
+              <svg class="w-5 h-5 flex-shrink-0 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg>
               <span class="text-lg text-on-background">Multiple API formats</span>
             </li>
             <li class="flex items-center gap-3">
-              <span class="material-symbols-outlined text-xl text-primary" aria-hidden="true">task_alt</span>
+              <svg class="w-5 h-5 flex-shrink-0 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg>
               <span class="text-lg text-on-background">Transparent pricing</span>
             </li>
             <li class="flex items-center gap-3">
-              <span class="material-symbols-outlined text-xl text-primary" aria-hidden="true">task_alt</span>
+              <svg class="w-5 h-5 flex-shrink-0 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg>
               <span class="text-lg text-on-background">Model verification</span>
             </li>
             <li class="flex items-center gap-3">
-              <span class="material-symbols-outlined text-xl text-primary" aria-hidden="true">task_alt</span>
+              <svg class="w-5 h-5 flex-shrink-0 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg>
               <span class="text-lg text-on-background">Pay-as-you-go, crypto supported</span>
             </li>
           </ul>
-
-          <blockquote
-            class="text-on-surface-variant italic border-l-4 pl-4 py-2"
-            style="border-color: var(--color-outline-variant);"
-          >
+          <blockquote class="text-on-surface-variant italic border-l-4 pl-4 py-2" style="border-color: var(--color-outline-variant);">
             Table stakes. The real value is stability from direct source &amp; operation.
           </blockquote>
         </div>
 
-        <!-- Right: API spec card -->
-        <div
-          class="bg-white p-10 md:p-12 rounded-xl flex flex-col gap-8"
-          style="box-shadow: 0 32px 64px -12px rgba(0,0,0,0.08); border: 1px solid #f0f0f0;"
-        >
+        <!-- API spec card -->
+        <div class="bg-white p-10 md:p-12 rounded-xl flex flex-col gap-8" style="box-shadow: 0 32px 64px -12px rgba(0,0,0,0.08); border: 1px solid #f0f0f0;">
           <dl>
             <div class="flex justify-between items-center pb-6" style="border-bottom: 1px solid #f0f0f0;">
-              <dt class="text-on-surface-variant font-medium uppercase text-xs tracking-widest" style="font-family: var(--font-body);">API Endpoint</dt>
+              <dt class="text-on-surface-variant font-medium uppercase text-xs tracking-widest">API Endpoint</dt>
               <dd><code class="bg-neutral-50 px-4 py-2 rounded text-sm font-mono text-on-background">api.lumii-ai.io</code></dd>
             </div>
             <div class="flex justify-between items-center py-6" style="border-bottom: 1px solid #f0f0f0;">
-              <dt class="text-on-surface-variant font-medium uppercase text-xs tracking-widest" style="font-family: var(--font-body);">Format</dt>
+              <dt class="text-on-surface-variant font-medium uppercase text-xs tracking-widest">Format</dt>
               <dd><code class="bg-neutral-50 px-4 py-2 rounded text-sm font-mono text-on-background">OpenAI Compatible</code></dd>
             </div>
             <div class="flex justify-between items-center py-6" style="border-bottom: 1px solid #f0f0f0;">
-              <dt class="text-on-surface-variant font-medium uppercase text-xs tracking-widest" style="font-family: var(--font-body);">Authentication</dt>
+              <dt class="text-on-surface-variant font-medium uppercase text-xs tracking-widest">Authentication</dt>
               <dd><code class="bg-neutral-50 px-4 py-2 rounded text-sm font-mono text-on-background">API Key</code></dd>
             </div>
             <div class="flex justify-between items-center pt-6">
-              <dt class="text-on-surface-variant font-medium uppercase text-xs tracking-widest" style="font-family: var(--font-body);">Billing</dt>
+              <dt class="text-on-surface-variant font-medium uppercase text-xs tracking-widest">Billing</dt>
               <dd><code class="bg-neutral-50 px-4 py-2 rounded text-sm font-mono text-on-background">Pay-as-you-go</code></dd>
             </div>
           </dl>
@@ -313,44 +288,30 @@ response = client.chat.completions.create(
 
         <div class="flex flex-col md:flex-row justify-between items-center md:items-start gap-10">
 
-          <!-- Step 1 -->
           <article class="flex-1 flex flex-col items-center text-center px-4">
-            <div
-              class="w-12 h-12 bg-white border border-primary text-primary flex items-center justify-center mb-6 font-mono text-lg font-bold"
-              style="box-shadow: 4px 4px 0px 0px rgba(0,0,0,1);"
-              aria-hidden="true"
-            >1</div>
-            <span class="material-symbols-outlined text-3xl mb-4 text-on-background" aria-hidden="true">account_tree</span>
+            <div class="w-12 h-12 bg-white border border-primary text-primary flex items-center justify-center mb-6 font-mono text-lg font-bold" style="box-shadow: 4px 4px 0px 0px rgba(0,0,0,1);" aria-hidden="true">1</div>
+            <!-- user-plus icon -->
+            <svg class="w-8 h-8 mb-4 text-on-background" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
             <h3 class="font-headline font-bold text-xl mb-2 text-on-background">Sign Up</h3>
             <p class="text-on-surface-variant text-sm">Create account, add payment method</p>
           </article>
 
-          <!-- Divider -->
           <div class="hidden md:block h-px w-16 flex-shrink-0 self-start mt-6" style="background: var(--color-outline-variant);"></div>
 
-          <!-- Step 2 -->
           <article class="flex-1 flex flex-col items-center text-center px-4">
-            <div
-              class="w-12 h-12 bg-white border border-primary text-primary flex items-center justify-center mb-6 font-mono text-lg font-bold"
-              style="box-shadow: 4px 4px 0px 0px rgba(0,0,0,1);"
-              aria-hidden="true"
-            >2</div>
-            <span class="material-symbols-outlined text-3xl mb-4 text-on-background" aria-hidden="true">vpn_key</span>
+            <div class="w-12 h-12 bg-white border border-primary text-primary flex items-center justify-center mb-6 font-mono text-lg font-bold" style="box-shadow: 4px 4px 0px 0px rgba(0,0,0,1);" aria-hidden="true">2</div>
+            <!-- key icon -->
+            <svg class="w-8 h-8 mb-4 text-on-background" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7.5" cy="15.5" r="5.5"/><path d="M21 2l-9.6 9.6"/><path d="M15.5 7.5l3 3L22 7l-3-3"/></svg>
             <h3 class="font-headline font-bold text-xl mb-2 text-on-background">Get API Key</h3>
             <p class="text-on-surface-variant text-sm">One key for all models</p>
           </article>
 
-          <!-- Divider -->
           <div class="hidden md:block h-px w-16 flex-shrink-0 self-start mt-6" style="background: var(--color-outline-variant);"></div>
 
-          <!-- Step 3 -->
           <article class="flex-1 flex flex-col items-center text-center px-4">
-            <div
-              class="w-12 h-12 bg-white border border-primary text-primary flex items-center justify-center mb-6 font-mono text-lg font-bold"
-              style="box-shadow: 4px 4px 0px 0px rgba(0,0,0,1);"
-              aria-hidden="true"
-            >3</div>
-            <span class="material-symbols-outlined text-3xl mb-4 text-on-background" aria-hidden="true">code_blocks</span>
+            <div class="w-12 h-12 bg-white border border-primary text-primary flex items-center justify-center mb-6 font-mono text-lg font-bold" style="box-shadow: 4px 4px 0px 0px rgba(0,0,0,1);" aria-hidden="true">3</div>
+            <!-- code icon -->
+            <svg class="w-8 h-8 mb-4 text-on-background" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
             <h3 class="font-headline font-bold text-xl mb-2 text-on-background">Start Building</h3>
             <p class="text-on-surface-variant text-sm">Point your code to our endpoint</p>
           </article>
@@ -366,22 +327,15 @@ response = client.chat.completions.create(
       <div class="max-w-7xl mx-auto px-6 md:px-8">
 
         <div class="text-center mb-20">
-          <h2
-            id="pricing-heading"
-            class="font-headline font-bold text-5xl mb-6 text-on-background"
-          >
-            Simple, Transparent Pricing
-          </h2>
+          <h2 id="pricing-heading" class="font-headline font-bold text-5xl mb-6 text-on-background">Simple, Transparent Pricing</h2>
           <p class="text-on-surface-variant text-lg">Pay-as-you-go. No monthly fees. No hidden costs.</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
 
+          <!-- SVG check used in pricing lists -->
           <!-- Open Source -->
-          <article
-            class="bg-white p-10 flex flex-col h-full card-hover transition-all duration-500"
-            style="border: 1px solid var(--color-outline-variant);"
-          >
+          <article class="bg-white p-10 flex flex-col h-full card-hover transition-all duration-500" style="border: 1px solid var(--color-outline-variant);">
             <span class="text-xs font-mono uppercase tracking-widest text-on-surface-variant mb-4">Entry Tier</span>
             <h3 class="font-headline font-bold text-2xl mb-6 text-on-background">Open Source Models</h3>
             <div class="flex items-baseline gap-1 mb-8">
@@ -390,32 +344,23 @@ response = client.chat.completions.create(
             </div>
             <ul class="space-y-4 mb-12 flex-grow" role="list">
               <li class="flex items-center gap-3 text-sm text-on-surface-variant">
-                <span class="material-symbols-outlined text-sm" aria-hidden="true">check</span>
+                <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
                 Public model access
               </li>
               <li class="flex items-center gap-3 text-sm text-on-surface-variant">
-                <span class="material-symbols-outlined text-sm" aria-hidden="true">check</span>
+                <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
                 Standard rate limits
               </li>
               <li class="flex items-center gap-3 text-sm text-on-surface-variant">
-                <span class="material-symbols-outlined text-sm" aria-hidden="true">check</span>
+                <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
                 Community support
               </li>
             </ul>
-            <a
-              href="#"
-              class="w-full py-4 font-mono text-xs font-bold uppercase tracking-widest text-center block transition-all hover:bg-primary hover:text-on-primary"
-              style="background: var(--color-surface-container-high); border: 1px solid var(--color-primary);"
-            >
-              Get Access
-            </a>
+            <a href="#" class="w-full py-4 font-mono text-xs font-bold uppercase tracking-widest text-center block transition-all hover:bg-primary hover:text-on-primary" style="background: var(--color-surface-container-high); border: 1px solid var(--color-primary);">Get Access</a>
           </article>
 
           <!-- Premium -->
-          <article
-            class="bg-white p-10 flex flex-col h-full card-hover transition-all duration-500"
-            style="border: 1px solid var(--color-outline-variant);"
-          >
+          <article class="bg-white p-10 flex flex-col h-full card-hover transition-all duration-500" style="border: 1px solid var(--color-outline-variant);">
             <span class="text-xs font-mono uppercase tracking-widest text-on-surface-variant mb-4">Performance Tier</span>
             <h3 class="font-headline font-bold text-2xl mb-6 text-on-background">Premium Models</h3>
             <div class="flex items-baseline gap-1 mb-8">
@@ -423,32 +368,23 @@ response = client.chat.completions.create(
             </div>
             <ul class="space-y-4 mb-12 flex-grow" role="list">
               <li class="flex items-center gap-3 text-sm text-on-surface-variant">
-                <span class="material-symbols-outlined text-sm" aria-hidden="true">check</span>
+                <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
                 High-priority routing
               </li>
               <li class="flex items-center gap-3 text-sm text-on-surface-variant">
-                <span class="material-symbols-outlined text-sm" aria-hidden="true">check</span>
+                <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
                 Extended rate limits
               </li>
               <li class="flex items-center gap-3 text-sm text-on-surface-variant">
-                <span class="material-symbols-outlined text-sm" aria-hidden="true">check</span>
+                <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
                 Priority support
               </li>
             </ul>
-            <a
-              href="#"
-              class="w-full py-4 font-mono text-xs font-bold uppercase tracking-widest text-center block transition-all hover:bg-primary hover:text-on-primary"
-              style="background: var(--color-surface-container-high); border: 1px solid var(--color-primary);"
-            >
-              Get Access
-            </a>
+            <a href="#" class="w-full py-4 font-mono text-xs font-bold uppercase tracking-widest text-center block transition-all hover:bg-primary hover:text-on-primary" style="background: var(--color-surface-container-high); border: 1px solid var(--color-primary);">Get Access</a>
           </article>
 
           <!-- lumii-auto -->
-          <article
-            class="bg-white p-10 flex flex-col h-full card-hover transition-all duration-500"
-            style="border: 1px solid var(--color-outline-variant);"
-          >
+          <article class="bg-white p-10 flex flex-col h-full card-hover transition-all duration-500" style="border: 1px solid var(--color-outline-variant);">
             <span class="text-xs font-mono uppercase tracking-widest text-on-surface-variant mb-4">Smart Routing</span>
             <h3 class="font-headline font-bold text-2xl mb-6 text-on-background">lumii-auto</h3>
             <div class="flex items-baseline gap-1 mb-8">
@@ -456,25 +392,19 @@ response = client.chat.completions.create(
             </div>
             <ul class="space-y-4 mb-12 flex-grow" role="list">
               <li class="flex items-center gap-3 text-sm text-on-surface-variant">
-                <span class="material-symbols-outlined text-sm" aria-hidden="true">check</span>
+                <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
                 Automatic model selection
               </li>
               <li class="flex items-center gap-3 text-sm text-on-surface-variant">
-                <span class="material-symbols-outlined text-sm" aria-hidden="true">check</span>
+                <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
                 Cost-performance optimized
               </li>
               <li class="flex items-center gap-3 text-sm text-on-surface-variant">
-                <span class="material-symbols-outlined text-sm" aria-hidden="true">check</span>
+                <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
                 Single endpoint, any task
               </li>
             </ul>
-            <a
-              href="#"
-              class="w-full py-4 font-mono text-xs font-bold uppercase tracking-widest text-center block transition-all hover:bg-primary hover:text-on-primary"
-              style="background: var(--color-surface-container-high); border: 1px solid var(--color-primary);"
-            >
-              Get Access
-            </a>
+            <a href="#" class="w-full py-4 font-mono text-xs font-bold uppercase tracking-widest text-center block transition-all hover:bg-primary hover:text-on-primary" style="background: var(--color-surface-container-high); border: 1px solid var(--color-primary);">Get Access</a>
           </article>
 
         </div>
@@ -488,15 +418,11 @@ response = client.chat.completions.create(
   ============================================================ -->
   <footer class="w-full bg-white" style="border-top: 1px solid #e8e8e8;" role="contentinfo">
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center px-8 md:px-12 py-16 gap-8 max-w-7xl mx-auto">
-
       <div class="flex flex-col gap-3">
         <div class="text-lg font-bold text-on-background uppercase tracking-widest font-headline">LumiiAI</div>
-        <p class="font-mono text-xs tracking-tight text-on-surface-variant">
-          Clean &amp; Stable AI token API access.
-        </p>
+        <p class="font-mono text-xs tracking-tight text-on-surface-variant">Clean &amp; Stable AI token API access.</p>
         <p class="font-mono text-xs text-on-surface-variant">© 2026 LumiiAI. All rights reserved.</p>
       </div>
-
       <nav aria-label="Footer navigation">
         <div class="flex flex-wrap gap-x-10 gap-y-4">
           <a class="text-on-surface-variant font-mono text-xs font-medium hover:text-on-background underline decoration-1 underline-offset-4 transition-colors" href="#">Documentation</a>
@@ -510,11 +436,9 @@ response = client.chat.completions.create(
           <a class="text-on-surface-variant font-mono text-xs font-medium hover:text-on-background underline decoration-1 underline-offset-4 transition-colors" href="#">Terms</a>
         </div>
       </nav>
-
     </div>
   </footer>
 
-  <!-- Scripts -->
   <script type="module">
     import { initCopyButtons, initMobileNav, initSmoothScroll } from './main.js'
     initCopyButtons()

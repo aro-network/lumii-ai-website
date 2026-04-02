@@ -1,4 +1,13 @@
 /**
+ * Mark fonts as loaded once Material Symbols is ready
+ */
+export function initFontLoad() {
+  document.fonts.ready.then(() => {
+    document.documentElement.classList.add('fonts-loaded')
+  })
+}
+
+/**
  * Copy-to-clipboard for code blocks
  */
 export function initCopyButtons() {

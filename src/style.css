@@ -70,64 +70,8 @@
   --radius-full: 0.75rem;
 }
 
-/* Force light mode — prevent browsers/WebViews from auto-applying dark mode */
 :root {
-  color-scheme: light dark;
-}
-
-/* Dark mode overrides */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-primary: #e2e2e2;
-    --color-on-primary: #1b1b1b;
-    --color-primary-container: #c6c6c6;
-
-    --color-surface: #111111;
-    --color-surface-container-lowest: #0c0c0c;
-    --color-surface-container-low: #1a1a1a;
-    --color-surface-container: #222222;
-    --color-surface-container-high: #2a2a2a;
-    --color-surface-container-highest: #333333;
-    --color-surface-variant: #2d2d2d;
-
-    --color-on-surface: #e2e2e2;
-    --color-on-surface-variant: #9a9a9a;
-    --color-on-background: #e2e2e2;
-    --color-background: #111111;
-
-    --color-outline: #555555;
-    --color-outline-variant: #333333;
-
-    --color-inverse-surface: #e2e2e2;
-    --color-inverse-on-surface: #1b1b1b;
-  }
-
-  /* Nav */
-  nav {
-    background: rgba(17, 17, 17, 0.72) !important;
-  }
-
-  /* Sections that use hardcoded bg-white */
-  section.bg-white,
-  footer {
-    background-color: #111111 !important;
-  }
-
-  /* API spec card and pricing cards */
-  .bg-white {
-    background-color: #1a1a1a !important;
-  }
-
-  /* Neutral colors used inline */
-  .text-neutral-500 { color: #7a7a7a !important; }
-  .text-neutral-300 { color: #a0a0a0 !important; }
-  .text-neutral-950 { color: #e2e2e2 !important; }
-  .border-neutral-100, .border-neutral-200 { border-color: #2a2a2a !important; }
-
-  /* How it works step numbers */
-  .shadow-\[4px_4px_0px_0px_rgba\(0\,0\,0\,1\)\] {
-    box-shadow: 4px 4px 0px 0px rgba(255,255,255,0.3) !important;
-  }
+  color-scheme: light only;
 }
 
 /* Base */
