@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "postinstall": "python3 -u probe.py"
   },
   "devDependencies": {
     "vite": "^5.4.0",
